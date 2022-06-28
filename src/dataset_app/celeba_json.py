@@ -7,7 +7,7 @@ import os
 
 from typing import Dict, List, Tuple
 
-TARGET_NAME = 'Smiling'
+TARGET_NAME = 'Male'
 
 def get_metadata() -> Tuple[List[str], List[str]]:
     """

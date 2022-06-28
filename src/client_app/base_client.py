@@ -38,12 +38,19 @@ class FlowerClient(Client):
 
         # json configuration
         self.dataset = config["dataset_name"]
-        self.train_json = DATA_ROOT / self.dataset / "partitions" / "iid" / "train.json"
-        self.test_json = DATA_ROOT / self.dataset / "partitions" / "iid" / "test.json"
+        self.target = config["target_name"]
+        self.trainset = load_dataset(name=self.dataset, id=self.cid, train=True, target=self.target)
+        self.testset = load_dataset(name=self.dataset, id=self.cid, train=False, target=self.target)
 
         # model configuration
         self.model = config["model_name"]
-        self.net: Net = load_model(name=self.model, input_spec=(3,32,32))
+        if self.dataset == "CIFAR10":
+            input_spec = (3,32,32)
+            out_dims = 10
+        elif self.dataset == "CelebA":
+            input_spec = (3,64,64)
+            out_dims = 2
+        self.net: Net = load_model(name=self.model, input_spec=input_spec, out_dims=out_dims)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     
     def get_parameters(self, ins: GetParametersIns) -> GetParametersRes:
@@ -60,20 +67,13 @@ class FlowerClient(Client):
         self.net.set_weights(weights)
 
         # dataset configuration train / validation
-        with open(self.train_json, "r") as f:
-            train_dict = json.load(f)
-        dataset = load_dataset(name=self.dataset, train=True, dataidxs=train_dict[self.cid])
-        n_val = int(len(dataset) * self.validation_split)
-        valset = Subset(dataset=dataset, indices=range(0, n_val))
-        trainset = Subset(dataset=dataset, indices=range(n_val, len(dataset)))
-        valloader = DataLoader(valset, batch_size=batch_size)
-        trainloader = DataLoader(trainset, batch_size=batch_size, shuffle=True, drop_last=True)
+        trainloader = DataLoader(self.trainset, batch_size=batch_size, shuffle=True, drop_last=True)
 
-        results = train(self.net, trainloader=trainloader, valloader=valloader, epochs=epochs, lr=lr, device=self.device)
+        results = train(self.net, trainloader=trainloader, epochs=epochs, lr=lr, device=self.device)
         parameters_prime: Parameters = weights_to_parameters(self.net.get_weights())
-        log(INFO, "fit() on client cid=%s: train loss %s / val loss %s", self.cid, results["train_loss"], results["val_loss"])
+        log(INFO, "fit() on client cid=%s: train loss %s / train acc %s", self.cid, results["train_loss"], results["train_acc"])
 
-        return FitRes(status=Status(Code.OK ,message="Success fit"), parameters=parameters_prime, num_examples=len(trainset), metrics=results)
+        return FitRes(status=Status(Code.OK ,message="Success fit"), parameters=parameters_prime, num_examples=len(self.trainset), metrics=results)
 
     def evaluate(self, ins: EvaluateIns) -> EvaluateRes:
         # unwrap FitIns
@@ -82,14 +82,14 @@ class FlowerClient(Client):
         batch_size: int = int(ins.config["batch_size"])
 
         self.net.set_weights(weights)
-        with open(self.test_json, "r") as f:
-            test_dict = json.load(f)
-        testset = load_dataset(name=self.dataset, train=False, dataidxs=test_dict[self.cid])
-        testloader = DataLoader(testset, batch_size=batch_size)
+        # with open(self.test_json, "r") as f:
+        #     test_dict = json.load(f)
+        # testset = load_dataset(name=self.dataset, train=False, dataidxs=test_dict[self.cid])
+        testloader = DataLoader(self.testset, batch_size=batch_size)
         loss, acc = test(self.net, testloader=testloader, steps=steps)
         log(INFO, "evaluate() on client cid=%s: test loss %s / test acc %s", self.cid, loss, acc)
 
-        return EvaluateRes(status=Status(Code.OK, message="Success eval"), loss=float(loss), num_examples=len(testset), metrics={"accuracy": acc})
+        return EvaluateRes(status=Status(Code.OK, message="Success eval"), loss=float(loss), num_examples=len(self.testset), metrics={"accuracy": acc})
 
 
 if __name__ == "__main__":

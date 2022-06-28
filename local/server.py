@@ -21,6 +21,7 @@ warnings.filterwarnings("ignore")
 
 parser = argparse.ArgumentParser("Flower Server")
 parser.add_argument("--dataset", type=str, required=True, choices=["CIFAR10", "CelebA"], help="FL config: dataset name")
+parser.add_argument("--target", type=str, required=True, help="FL config: target partitions for common dataset target attributes for celeba")
 parser.add_argument("--model", type=str, required=True, choices=["tiny_CNN", "ResNet18"], help="FL config: model name")
 parser.add_argument("--num_rounds", type=int, required=False, default=5, help="FL config: aggregation rounds")
 parser.add_argument("--num_clients", type=int, required=False, default=4, help="FL config: number of clients")
@@ -43,8 +44,14 @@ def main():
     args = parser.parse_args()
     print(args)
     set_seed(args.seed)
+    if args.dataset == "CIFAR10":
+        input_spec = (3,32,32)
+        out_dims = 10
+    elif args.dataset == "CelebA":
+        input_spec = (3,64,64)
+        out_dims = 2
     
-    model: Net = load_model(name=args.model, input_spec=(3,32,32))
+    model: Net = load_model(name=args.model, input_spec=input_spec, out_dims=out_dims)
     init_parameters: Parameters = weights_to_parameters(model.get_weights())
 
     def fit_config(rnd: int)-> Dict[str, Scalar]:
@@ -62,9 +69,9 @@ def main():
         }
         return config
 
-    def get_eval_fn(model: Net, dataset: str):
+    def get_eval_fn(model: Net, dataset: str, target: str):
         """Return an evaluation function for server-side evaluation."""
-        testset = load_dataset(name=dataset, train=False)
+        testset = load_dataset(name=dataset, train=False, target=target)
         testloader = DataLoader(testset, batch_size=10)
         def evaluate(
             weights: Weights,
@@ -78,10 +85,10 @@ def main():
     strategy = FedAvg(
         fraction_fit=1,
         fraction_eval=1,
-        min_fit_clients=1,
-        min_eval_clients=1,
+        min_fit_clients=args.num_clients,
+        min_eval_clients=args.num_clients,
         min_available_clients=args.num_clients,
-        eval_fn=get_eval_fn(model, args.dataset),
+        eval_fn=get_eval_fn(model, args.dataset, args.target),
         on_fit_config_fn=fit_config,
         on_evaluate_config_fn=eval_config,
         initial_parameters=init_parameters,

@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 import numpy as np
+import torch
+from torch.nn.functional import one_hot
 from torch.utils.data import Dataset
 from torchvision.transforms import transforms
 from torchvision.datasets import (
@@ -9,6 +11,8 @@ from torchvision.datasets import (
 )
 
 from PIL import Image
+
+DATA_ROOT = Path("./data")
 
 """The followings are borrowed from NIID-Bench"""
 class FashionMNIST_truncated(Dataset):
@@ -58,13 +62,20 @@ class FashionMNIST_truncated(Dataset):
         return len(self.data)
 
 class CIFAR10_truncated(Dataset):
-    def __init__(self, root, dataidxs=None, train=True, transform=None, target_transform=None, download=False):
-        self.root = root
-        self.dataidxs = dataidxs
+    def __init__(self, id:str = None, json_path: str = None,  train=True, transform=None, target_transform=None, download=False):
+        self.id = id
+        self.json_path = json_path
         self.train = train
         self.transform = transform
         self.target_transform = target_transform
         self.download = download
+        
+        self.root = DATA_ROOT / "CIFAR10" / "raw"
+        if self.json_path is not None:
+            if train:
+                self.json_path = Path(json_path) / "train.json"
+            else:
+                self.json_path = Path(json_path) / "test.json"
 
         self.data, self.target = self.__build_truncated_dataset__()
 
@@ -73,9 +84,12 @@ class CIFAR10_truncated(Dataset):
         data = cifar_dataobj.data
         target = np.array(cifar_dataobj.targets)
 
-        if self.dataidxs is not None:
-            data = data[self.dataidxs]
-            target = target[self.dataidxs]
+        if self.json_path is not None:
+            with open(self.json_path, 'r') as f:
+                json_data = json.load(f)
+            data_idx = json_data[self.id]
+            data = data[data_idx]
+            target = target[data_idx]
 
         return data, target
 
@@ -104,7 +118,6 @@ class CIFAR10_truncated(Dataset):
 
 class CelebaDataset(Dataset):
     def __init__(self, id: str, target: str, train: bool = True, transform=None) -> None:
-        self.id = int(id)
         self.root = Path("./data/celeba")
         self.transform = transform
         if self.transform is None:
@@ -122,6 +135,7 @@ class CelebaDataset(Dataset):
             self.json_data = json.load(f)
 
         if train:
+            self.id = int(id)
             self.num_samples = self.json_data['num_samples'][self.id]
             user = self.json_data['users'][self.id]
             self.data = self.json_data['user_data'][user]
@@ -137,6 +151,8 @@ class CelebaDataset(Dataset):
         img_path = self.root / "raw" / "img_align_celeba" / self.data['x'][index]
         img = Image.open(img_path)
         target = self.data['y'][index]
+        # target = one_hot(torch.tensor(self.data['y'][index]), num_classes=2).to(torch.float32)
+        # target = torch.eye(2)[self.data['y'][index]]
 
         if self.transform is not None:
             img = self.transform(img)

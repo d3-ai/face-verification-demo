@@ -2,21 +2,22 @@
 
 . ./path.sh
 
-dataset="CIFAR10"
+dataset="CelebA"
+target="Eyeglasses"
 model="tiny_CNN"
 
 # fl configuration
-num_rounds=5
-num_clients=4
+num_rounds=10
+num_clients=5
 
 # fit configuration
 batch_size=10
-local_epochs=5
+local_epochs=1
 lr=0.05
 
 seed=1234
 
-exp_dir="./exp/${dataset}/FedAvg_${model_name}/R_${num_rounds}_B_${batch_size}_E_${local_epochs}_lr_${lr}_S_${seed}"
+exp_dir="./exp/${dataset}/FedAvg_${model_name}/"${target}"/R_${num_rounds}_B_${batch_size}_E_${local_epochs}_lr_${lr}_S_${seed}"
 
 if [ ! -e "${exp_dir}" ]; then
     mkdir -p "${exp_dir}/logs/"
@@ -27,6 +28,7 @@ fi
 python ./local/server.py \
 --num_rounds ${num_rounds} \
 --dataset ${dataset} \
+--target ${target} \
 --model ${model} \
 --local_epochs ${local_epochs} \
 --batch_size ${batch_size} \
@@ -38,6 +40,7 @@ for i in $(seq 1 $num_clients); do
     echo "Starting client $i"
     python ./local/client.py --cid ${i} \
     --dataset ${dataset} \
+    --target ${target} \
     --model ${model} \
     --seed ${seed} \
     2> "${exp_dir}/logs/client${i}_flower.log" &

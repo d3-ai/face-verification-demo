@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from models.base_model import Net
 
-def train(net: Net, trainloader: DataLoader, valloader: DataLoader, epochs: int, lr: float, device: str)->Dict[str, float]:
+def train(net: Net, trainloader: DataLoader, epochs: int, lr: float, device: str)->Dict[str, float]:
     print("Starting training...")
     net.to(device)
     criterion = torch.nn.CrossEntropyLoss().to(device)
@@ -20,12 +20,9 @@ def train(net: Net, trainloader: DataLoader, valloader: DataLoader, epochs: int,
             optimizer.step()
     net.to("cpu")
     train_loss, train_acc = test(net, trainloader)
-    val_loss, val_acc = test(net, valloader)
     results = {
         "train_loss": train_loss,
         "train_acc": train_acc,
-        "val_loss": val_loss,
-        "val_acc": val_acc,
     }
     return results
 

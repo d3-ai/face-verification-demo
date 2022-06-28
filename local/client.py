@@ -15,6 +15,7 @@ warnings.filterwarnings("ignore")
 parser = argparse.ArgumentParser("Flower Client")
 parser.add_argument("--cid", type=str, required=True, help="Client id for data partitioning.")
 parser.add_argument("--dataset", type=str, required=False, choices=["CIFAR10", "CelebA"], default="CIFAR10", help="dataset name for FL training")
+parser.add_argument("--target", type=str, required=True, help="FL config: target partitions for common dataset target attributes for celeba")
 parser.add_argument("--model", type=str, required=False, choices=["tiny_CNN", "ResNet18"], default="tiny_CNN", help="model name for FL training")
 parser.add_argument("--seed", type=int, required=False, default=1234, help="Random seed")
 
@@ -30,6 +31,7 @@ def main() -> None:
     set_seed(args.seed)
     config = {
         "dataset_name": args.dataset,
+        "target_name": args.target,
         "model_name": args.model, 
     }
     client: Client = FlowerClient(cid=args.cid, config=config)
