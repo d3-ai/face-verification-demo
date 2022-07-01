@@ -1,5 +1,6 @@
 /data
 /exp
 /local/test.py
+/local/simulation.py
 *__pycache__*
 *DS_Store*

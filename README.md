@@ -1,11 +1,21 @@
 # Flower_mockup
-## CelebA dataset
-Define global variable `TARGET_NAME` representing the data attributes
+## Dataset
+Extract `img_align_celeba.zip` to `./data/celeba/raw/`
+```=bash
+apt-get install -y zip
+mkdir -p ./data/celeba/raw
+unzip ./img_align_celeba.zip ./data/celeba/raw
 ```
-. ./path.sh
-python ./src/dataset_app/celeba_json.py
+Server
 ```
-
+. ./run_server.sh
 ```
-. ./run.sh
+Client
+```
+$ docker build -t flower_mockup:latest ./
+$ docker run -it \
+  --rm \
+  --name hoge \
+  --mount type=bind,source="$(pwd)"/data/celeba/raw,target=/project/data/celeba/raw,readonly \
+  flower_mockup:latest
 ```

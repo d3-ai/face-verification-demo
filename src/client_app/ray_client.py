@@ -1,3 +1,4 @@
+import ray
 import warnings
 
 import torch
@@ -25,18 +26,18 @@ from common.typing import (
 )
 from .client import Client
 from typing import Dict
+from pathlib import Path
 
+DATA_ROOT = Path("./data")
 warnings.filterwarnings("ignore")
 
-class FlowerClient(Client):
+class FlowerRayClient(Client):
     def __init__(self, cid: str, config: Dict[str, str]):
         self.cid = cid
 
         # json configuration
         self.dataset = config["dataset_name"]
         self.target = config["target_name"]
-        self.trainset = load_dataset(name=self.dataset, id=self.cid, train=True, target=self.target)
-        self.testset = load_dataset(name=self.dataset, id=self.cid, train=False, target=self.target)
 
         # model configuration
         self.model = config["model_name"]
@@ -62,14 +63,17 @@ class FlowerClient(Client):
         # set parameters
         self.net.set_weights(weights)
 
-        # dataset configuration train / validation
-        trainloader = DataLoader(self.trainset, batch_size=batch_size, shuffle=True, drop_last=True)
+        # ray configuration
+        num_workers = len(ray.worker.get_resource_ids()["CPU"])
+        # dataset configuration train /
+        trainset = load_dataset(name=self.dataset, id=self.cid, train=True, target=self.target)
+        trainloader = DataLoader(trainset, batch_size=batch_size, shuffle=True, drop_last=True, num_workers=num_workers, pin_memory=True)
 
         results = train(self.net, trainloader=trainloader, epochs=epochs, lr=lr, device=self.device)
         parameters_prime: Parameters = weights_to_parameters(self.net.get_weights())
         log(INFO, "fit() on client cid=%s: train loss %s / train acc %s", self.cid, results["train_loss"], results["train_acc"])
 
-        return FitRes(status=Status(Code.OK ,message="Success fit"), parameters=parameters_prime, num_examples=len(self.trainset), metrics=results)
+        return FitRes(status=Status(Code.OK ,message="Success fit"), parameters=parameters_prime, num_examples=len(trainset), metrics=results)
 
     def evaluate(self, ins: EvaluateIns) -> EvaluateRes:
         # unwrap FitIns
@@ -78,11 +82,12 @@ class FlowerClient(Client):
         batch_size: int = int(ins.config["batch_size"])
 
         self.net.set_weights(weights)
-        testloader = DataLoader(self.testset, batch_size=batch_size)
+        testset = load_dataset(name=self.dataset, id=self.cid, train=False, target=self.target)
+        testloader = DataLoader(testset, batch_size=batch_size)
         loss, acc = test(self.net, testloader=testloader, steps=steps)
         log(INFO, "evaluate() on client cid=%s: test loss %s / test acc %s", self.cid, loss, acc)
 
-        return EvaluateRes(status=Status(Code.OK, message="Success eval"), loss=float(loss), num_examples=len(self.testset), metrics={"accuracy": acc})
+        return EvaluateRes(status=Status(Code.OK, message="Success eval"), loss=float(loss), num_examples=len(testset), metrics={"accuracy": acc})
 
 
 if __name__ == "__main__":
@@ -96,7 +101,7 @@ if __name__ == "__main__":
             "batch_size": 10,
         }
         return config
-    client = FlowerClient(cid="0", config=client_config)
+    client = FlowerRayClient(cid="0", config=client_config)
     config = fit_config()
     model = load_model(name="tiny_CNN", input_spec=(3,32,32))
     init_parameters = weights_to_parameters(model.get_weights())
