@@ -13,6 +13,7 @@ from client_app.base_client import FlowerClient
 warnings.filterwarnings("ignore")
 
 parser = argparse.ArgumentParser("Flower Client")
+parser.add_argument("--server_address", type=str, required=True, default="0.0.0.0:8080", help="server ipaddress:post")
 parser.add_argument("--cid", type=str, required=True, help="Client id for data partitioning.")
 parser.add_argument("--dataset", type=str, required=False, choices=["CIFAR10", "CelebA"], default="CIFAR10", help="dataset name for FL training")
 parser.add_argument("--target", type=str, required=True, help="FL config: target partitions for common dataset target attributes for celeba")
@@ -35,7 +36,7 @@ def main() -> None:
         "model_name": args.model, 
     }
     client: Client = FlowerClient(cid=args.cid, config=config)
-    fl.client.start_client("0.0.0.0:8080", client=client)
+    fl.client.start_client(args.server_address, client=client)
 
 if __name__ == "__main__":
     main()

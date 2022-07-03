@@ -20,6 +20,7 @@ from typing import Dict, Optional, Tuple
 warnings.filterwarnings("ignore")
 
 parser = argparse.ArgumentParser("Flower Server")
+parser.add_argument("--server_address", type=str, required=True, default="0.0.0.0:8080", help="server ipaddress:post")
 parser.add_argument("--dataset", type=str, required=True, choices=["CIFAR10", "CelebA"], help="FL config: dataset name")
 parser.add_argument("--target", type=str, required=True, help="FL config: target partitions for common dataset target attributes for celeba")
 parser.add_argument("--model", type=str, required=True, choices=["tiny_CNN", "ResNet18"], help="FL config: model name")
@@ -95,7 +96,7 @@ def main():
     )
 
     # Start Flower server for four rounds of federated learning
-    fl.server.start_server("0.0.0.0:8080", config={"num_rounds": args.num_rounds}, strategy=strategy)
+    fl.server.start_server(args.server_address, config={"num_rounds": args.num_rounds}, strategy=strategy)
 
 
 if __name__ == "__main__":

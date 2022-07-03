@@ -7,6 +7,10 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en_US
 ENV LC_ALL en_US.UTF-8
 
+RUN apt-get clean && apt-get update && apt-get install -y iputils-ping \
+net-tools \
+dnsutils
+
 LABEL maintainer="Y. Yamasaki <yamasaki@hal.ipc.i.u-tokyo.ac.jp>"
 
 SHELL ["/bin/bash", "-c"]
@@ -32,30 +36,20 @@ libffi-dev \
 liblzma-dev \
 python3-distutils
 
-# RUN git clone https://github.com/pyenv/pyenv.git ~/.pyenv
+RUN git clone https://github.com/pyenv/pyenv.git ~/.pyenv
 
-# RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc && \
-# echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc && \
-# echo 'eval "$(pyenv init -)"' >> ~/.bashrc && \
-# exec "$SHELL"
+ENV PYENV_ROOT /root/.pyenv
+ENV PATH $PYENV_ROOT/bin:$PATH
+ENV PATH $PYENV_ROOT/shims:$PATH
 
-# ENV PYENV_ROOT /root/.pyenv
-# ENV PATH $PYENV_ROOT/bin:$PATH
-# ENV PATH $PYENV_ROOT/shims:$PATH
+RUN eval "$(pyenv init -)" && pyenv install 3.8.0 && pyenv global 3.8.0
+RUN pip install pipenv
 
-# RUN pyenv install 3.8.0
-# RUN pyenv global 3.8.0
-# RUN pip install --upgrade pip 
-# RUN pip3 install pipenv
+WORKDIR /project
+COPY ./Pipfile /project/
+COPY ./Pipfile.lock /project/
+RUN pipenv update
 
-# WORKDIR /project
-# COPY ./Pipfile /project/
-# COPY ./Pipfile.lock /project/
-# RUN pipenv install
-
-# COPY ./local/ /project/local
-# COPY ./src/ /project/src
-# COPY ./path.sh /project/
-# COPY ./run.sh /project/
-# RUN . ./path.sh
-# RUN pipenv run python ./src/dataset_app/celeba_json.py
+COPY ./path.sh /project/
+COPY ./run_server.sh /project/
+COPY ./run_client.sh /project/

@@ -8,7 +8,7 @@ import os
 from torchvision.datasets.utils import download_file_from_google_drive
 from typing import Dict, List, Tuple
 
-TARGET_NAME = 'Male'
+TARGET_NAME = 'Eyeglasses'
 
 def get_metadata() -> Tuple[List[str], List[str]]:
     """

@@ -10,12 +10,17 @@ Server
 ```
 . ./run_server.sh
 ```
-Client
+Server
 ```
 $ docker build -t flower_mockup:latest ./
 $ docker run -it \
   --rm \
+  -p 8080:8080 \
   --name hoge \
-  --mount type=bind,source="$(pwd)"/data/celeba/raw,target=/project/data/celeba/raw,readonly \
+  --mount type=bind,source="$(pwd)"/data/,target=/project/data/,readonly \
+  --mount type=bind,source="$(pwd)"/local/,target=/project/local/,readonly \
+  --mount type=bind,source="$(pwd)"/src/,target=/project/src/,readonly \
   flower_mockup:latest
+root@{containerid}:/project# pipenv shell
+(project)root@{containerid}:/project# . ./run_server.sh "SERVER_IP:8080"
 ```
