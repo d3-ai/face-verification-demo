@@ -3,7 +3,7 @@
 How to build Docker image for rapberry pi4 (Ubuntu20.04 LTS)
 
 Edit a json Docker daemon configuration file
-```=josn
+```=json
 {
   "builder": {
     "gc": {
@@ -19,7 +19,7 @@ Edit a json Docker daemon configuration file
 ```
 Build image for `linux/arm/v8`
 ```=bash
-$ docker buildx build --platform linux/arm64/v8 --tag {image_name}:latest --load ./Dockerfile
+$ docker buildx build --platform linux/arm64/v8 --tag flower_mockup_pi4:latest --load ./baseimages/pi/
 $ docker save -o {image_name}.tar {image_name}:latest
 ```
 Install `{image_name}.tar` to Raspberry Pi
@@ -40,7 +40,6 @@ $ docker run -it \
   --rm \
   -p 8080:8080 \
   --name test \
-  --mount type=,source="$(pwd)"/shell/,target=/project/shell/,readonly \
   --mount type=bind,source="$(pwd)"/shell/,target=/project/shell/,readonly \
   --mount type=bind,source="$(pwd)"/data/,target=/project/data/,readonly \
   --mount type=bind,source="$(pwd)"/local/,target=/project/local/,readonly \
@@ -48,7 +47,7 @@ $ docker run -it \
   flower_mockup:latest
 root@{containerid}:/project# pipenv update
 root@{containerid}:/project# pipenv shell
-(project)root@{containerid}:/project# . ./shell/run_server.sh --server_address "SERVER_IPADDRESS:8080"
+(project)root@{containerid}:/project# . ./shell/run_server.sh --server_address "CONTAINER_IPADDRESS:8080"
 ```
 ## Client
 ```=bash

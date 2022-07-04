@@ -46,5 +46,8 @@ RUN eval "$(pyenv init -)" && pyenv install 3.8.0 && pyenv global 3.8.0
 RUN pip install pipenv
 
 WORKDIR /project
-COPY Pipfile /project/
-RUN pipenv update
+RUN pipenv install --python 3.8.0 
+RUN pipenv install https://download.pytorch.org/whl/cpu/torch-1.8.0-cp38-cp38-manylinux2014_aarch64.whl && \
+pipenv install https://download.pytorch.org/whl/cpu/torchvision-0.9.1-cp38-cp38-manylinux2014_aarch64.whl && \
+pipenv install flwr && \
+pipenv install tqdm
