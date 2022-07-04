@@ -2,5 +2,8 @@
 /exp
 /local/test.py
 /local/simulation.py
+/src/client_app/ray_client.py
+Pipfile.lock
+*.tar
 *__pycache__*
 *DS_Store*

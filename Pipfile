@@ -7,7 +7,6 @@ name = "pypi"
 flwr = "*"
 torch = "*"
 torchvision = "*"
-ray = "*"
 tqdm = "*"
 matplotlib = "*"
 

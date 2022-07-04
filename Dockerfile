@@ -1,4 +1,4 @@
-FROM --platform=linux/x86_64 ubuntu:20.04
+FROM ubuntu:20.04
 
 RUN apt-get clean && apt-get update && apt-get install -y locales
 
@@ -46,10 +46,3 @@ RUN eval "$(pyenv init -)" && pyenv install 3.8.0 && pyenv global 3.8.0
 RUN pip install pipenv
 
 WORKDIR /project
-COPY ./Pipfile /project/
-COPY ./Pipfile.lock /project/
-RUN pipenv update
-
-COPY ./path.sh /project/
-COPY ./run_server.sh /project/
-COPY ./run_client.sh /project/

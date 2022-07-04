@@ -25,7 +25,7 @@ if [ ! -e "${exp_dir}" ]; then
     mkdir -p "${exp_dir}/metrics/"
 fi
 
-python ./local/server.py --server_address ${@} \
+python ./local/server.py ${@} \
 --num_rounds ${num_rounds} \
 --num_clients ${num_clients} \
 --dataset ${dataset} \

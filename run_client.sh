@@ -28,8 +28,7 @@ if [ ! -e "${exp_dir}" ]; then
 fi
 
 
-python ./local/client.py --server_address ${server_address} \
---cid ${@} \
+python ./local/client.py ${@} \
 --dataset ${dataset} \
 --target ${target} \
 --model ${model} \
