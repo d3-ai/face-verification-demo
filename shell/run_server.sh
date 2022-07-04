@@ -2,6 +2,12 @@
 
 . ./shell/path.sh
 
+args=()
+for arg in $@; do
+args+=($arg)
+done
+server_address=${args[1]}
+
 dataset="CelebA"
 target="Eyeglasses"
 model="tiny_CNN"
@@ -25,7 +31,7 @@ if [ ! -e "${exp_dir}" ]; then
     mkdir -p "${exp_dir}/metrics/"
 fi
 
-python ./local/server.py ${@} \
+python ./local/server.py --server_address ${server_address} \
 --num_rounds ${num_rounds} \
 --num_clients ${num_clients} \
 --dataset ${dataset} \
@@ -34,7 +40,7 @@ python ./local/server.py ${@} \
 --local_epochs ${local_epochs} \
 --batch_size ${batch_size} \
 --seed ${seed} \
-2>"${exp_dir}/logs/server_flower.log"
+2>"${exp_dir}/logs/server_flower.log" &
 
 # This will allow you to use CTRL+C to stop all background processes
 trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM

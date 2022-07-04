@@ -2,7 +2,12 @@
 
 . ./shell/path.sh
 
-server_address="192.168.199.4:8080"
+args=()
+for arg in $@; do
+args+=($arg)
+done
+server_address=${args[1]}
+cid=${args[3]}
 
 dataset="CelebA"
 target="Eyeglasses"
@@ -28,12 +33,13 @@ if [ ! -e "${exp_dir}" ]; then
 fi
 
 
-python ./local/client.py ${@} \
+python ./local/client.py --server_address ${server_address} \
+--cid ${cid} \
 --dataset ${dataset} \
 --target ${target} \
 --model ${model} \
 --seed ${seed} \
-2> "${exp_dir}/logs/client${@}_flower.log" &
+2>"${exp_dir}/logs/client${cid}_flower.log" &
 
 # This will allow you to use CTRL+C to stop all background processes
 trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM
