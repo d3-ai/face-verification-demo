@@ -46,3 +46,5 @@ RUN eval "$(pyenv init -)" && pyenv install 3.8.0 && pyenv global 3.8.0
 RUN pip install pipenv
 
 WORKDIR /project
+COPY Pipfile /project/
+RUN pipenv update

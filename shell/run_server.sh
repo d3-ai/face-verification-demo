@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ./path.sh
+. ./shell/path.sh
 
 dataset="CelebA"
 target="Eyeglasses"
@@ -8,7 +8,7 @@ model="tiny_CNN"
 
 # fl configuration
 num_rounds=10
-num_clients=5
+num_clients=4
 
 # fit configuration
 batch_size=10
@@ -25,26 +25,16 @@ if [ ! -e "${exp_dir}" ]; then
     mkdir -p "${exp_dir}/metrics/"
 fi
 
-python ./local/server.py \
+python ./local/server.py ${@} \
 --num_rounds ${num_rounds} \
+--num_clients ${num_clients} \
 --dataset ${dataset} \
 --target ${target} \
 --model ${model} \
 --local_epochs ${local_epochs} \
 --batch_size ${batch_size} \
 --seed ${seed} \
-2>"${exp_dir}/logs/server_flower.log" &
-sleep 5 # Sleep for 2s to give the server enough time to start
-
-for i in $(seq 1 $num_clients); do
-    echo "Starting client $i"
-    python ./local/client.py --cid ${i} \
-    --dataset ${dataset} \
-    --target ${target} \
-    --model ${model} \
-    --seed ${seed} \
-    2> "${exp_dir}/logs/client${i}_flower.log" &
-done
+2>"${exp_dir}/logs/server_flower.log"
 
 # This will allow you to use CTRL+C to stop all background processes
 trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM

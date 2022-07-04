@@ -4,6 +4,7 @@
 /local/simulation.py
 /src/client_app/ray_client.py
 Pipfile.lock
+setup_pi.sh
 *.tar
 *__pycache__*
 *DS_Store*
