@@ -26,8 +26,11 @@ Install `{image_name}.tar` to Raspberry Pi
 ```=bash
 $ docker load -i {image_name}.tar
 ```
-## Intel Mac
-`x86_64`
+## Host PC
 ```=bash
-$ docker build --tag flower_mockup:latest ./baseimages/mac/
+$ docker build --tag flower_mockup:latest ./baseimages/cpu_machine/
+```
+When GPU is available
+```=bash
+$ docker build --tag flower_mockup:latest ./baseimages/cpu_machine/
 ```
