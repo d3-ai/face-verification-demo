@@ -1,0 +1,15 @@
+{
+    "name": "Docker-Python",
+    "dockerComposeFile": "./docker-compose.yml",
+    "service": "flower_server",
+    "workspaceFolder": "/project",
+    "customizations": {
+        "vscode": {
+            "settings": {},
+            "extensions": [
+                "ms-python.python"
+            ]
+        }
+    },
+    "overrideCommand": true
+}

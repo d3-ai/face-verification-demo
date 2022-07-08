@@ -10,12 +10,11 @@ unzip ./img_align_celeba.zip ./data/celeba/raw
 ```=bash
 $ docker build -t {image_name}:latest ./
 $ docker run -it \
-  --rm \
   -p 8080:8080 \
   --name test \
   --mount type=bind,source="$(pwd)"/shell/,target=/project/shell/,readonly \
   --mount type=bind,source="$(pwd)"/data/,target=/project/data/,readonly \
-  --mount type=bind,source="$(pwd)"/local/,target=/project/local/,readonly \
+  --mount type=bind,source="$(pwd)"/local/,target=/project/local/ \
   --mount type=bind,source="$(pwd)"/src/,target=/project/src/,readonly \
   flower_mockup:latest
 root@{containerid}:/project# pipenv update
@@ -25,10 +24,8 @@ root@{containerid}:/project# pipenv shell
 When GPU is availabe
 ```=bash
 $ docker build -t {image_name}:latest ./
-$ docker run -it \
-  --rm \
-  -p 8080:8080 \
-  --gpus=all
+$ docker run \
+  --gpus=all \
   --name test \
   --mount type=bind,source="$(pwd)"/shell/,target=/project/shell/,readonly \
   --mount type=bind,source="$(pwd)"/data/,target=/project/data/,readonly \

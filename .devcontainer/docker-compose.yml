@@ -1,0 +1,18 @@
+version: '2.3'
+
+services: 
+  flower_server:
+    container_name: "test"
+    build: 
+      context: ..
+      dockerfile: ./baseimages/gpu_machine/Dockerfile
+    volumes:
+      - ../shell:/project/shell:ro
+      - ../data:/project/data:ro
+      - ../src:/project/src:ro
+      - ../local:/project/local
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    
