@@ -73,9 +73,9 @@ class CIFAR10_truncated(Dataset):
         self.root = DATA_ROOT / "CIFAR10" / "raw"
         if self.json_path is not None:
             if train:
-                self.json_path = Path(json_path) / "train.json"
+                self.json_path = Path(json_path) / "train_data.json"
             else:
-                self.json_path = Path(json_path) / "test.json"
+                self.json_path = Path(json_path) / "test_data.json"
 
         self.data, self.target = self.__build_truncated_dataset__()
 

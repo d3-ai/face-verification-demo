@@ -1,7 +1,7 @@
 /data/*/raw
 /exp
 /local/test.py
-/local/simulation.py
+/local/tuning_test.py
 /src/client_app/ray_client.py
 Pipfile.lock
 setup_pi.sh

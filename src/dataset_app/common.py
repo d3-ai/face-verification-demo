@@ -9,7 +9,7 @@ from torchvision.transforms import transforms
 from typing import List, Dict, Tuple
 from pathlib import Path
 
-from datasets import CIFAR10_truncated
+from .datasets import CIFAR10_truncated
 DATA_ROOT = Path("./data")
 
 def load_fmnist():
@@ -43,11 +43,10 @@ def load_mnist():
     return (X_train, y_train, X_test, y_test)
 
 def load_cifar10():
-    transform = transforms.Compose([transforms.ToTensor()])
-    root = DATA_ROOT / "CIFAR10" / "raw"
+    transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.4914,0.4822,0.4465),(0.2470,0.2435,0.2616))])
 
-    traindata = CIFAR10_truncated(root=root, train=True, download=True, transform=transform)
-    testdata = CIFAR10_truncated(root=root, train=False, download=True, transform=transform)
+    traindata = CIFAR10_truncated(train=True, download=True, transform=transform)
+    testdata = CIFAR10_truncated(train=False, download=True, transform=transform)
 
     X_train, y_train = traindata.data, traindata.target
     X_test, y_test = testdata.data, testdata.target

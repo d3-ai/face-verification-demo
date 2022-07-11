@@ -8,9 +8,14 @@ services:
       dockerfile: ./baseimages/gpu_machine/Dockerfile
     volumes:
       - ../shell:/project/shell:ro
-      - ../data:/project/data:ro
-      - ../src:/project/src:ro
+      - ../src/client_app:/project/src/client_app
+      - ../src/common:/project/src/common:ro
+      - ../src/dataset_app:/project/src/dataset_app
+      - ../src/utils:/project/src/utils
+      - ../src/models:/project/src/models
+      - ../src/driver.py:/project/src/driver.py:ro
       - ../local:/project/local
+      - ../data:/project/data
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
