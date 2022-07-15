@@ -1,0 +1,17 @@
+max_epochs:
+  sampler: "no"
+  value: 10
+model_name:
+  sampler: "no"
+  value: "tiny_CNN"
+dataset_name:
+  sampler: "no"
+  value: "CIFAR10"
+batch_size:
+  sampler: "choice"
+  categories: [64, 128, 256, 512, 1024]
+lr:
+  sampler: "loguniform"
+  lower: 0.00001
+  upper: 0.1
+  base: 0.0005

@@ -62,7 +62,7 @@ class FashionMNIST_truncated(Dataset):
         return len(self.data)
 
 class CIFAR10_truncated(Dataset):
-    def __init__(self, id:str = None, json_path: str = None,  train=True, transform=None, target_transform=None, download=False):
+    def __init__(self, root: str, id:str = None, json_path: str = None,  train=True, transform=None, target_transform=None, download=False):
         self.id = id
         self.json_path = json_path
         self.train = train
@@ -70,7 +70,7 @@ class CIFAR10_truncated(Dataset):
         self.target_transform = target_transform
         self.download = download
         
-        self.root = DATA_ROOT / "CIFAR10" / "raw"
+        self.root = root / "CIFAR10" / "raw"
         if self.json_path is not None:
             if train:
                 self.json_path = Path(json_path) / "train_data.json"

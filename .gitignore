@@ -1,3 +1,4 @@
+/.devcontainer/.wandb_api_key
 /data/*/raw
 /exp
 /local/test.py

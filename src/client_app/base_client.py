@@ -8,7 +8,11 @@ from flwr.common.logger import log
 
 from driver import train, test
 from models.base_model import Net
-from utils.utils_dataset import load_dataset
+from utils.utils_dataset import (
+    configure_dataset,
+    load_dataset,
+    split_validation
+)
 from utils.utils_model import load_model
 from common.parameter import parameters_to_weights, weights_to_parameters
 from common.typing import (
@@ -35,22 +39,22 @@ class FlowerClient(Client):
         # json configuration
         self.dataset = config["dataset_name"]
         self.target = config["target_name"]
-        self.trainset = load_dataset(name=self.dataset, id=self.cid, train=True, target=self.target)
+
+        # dataset configuration
+        validation_ratio=0.8
+        dataset = load_dataset(name=self.dataset, id=self.cid, train=True, target=self.target)
+        self.trainset, self.valset = split_validation(dataset, split_ratio=validation_ratio)
         self.testset = load_dataset(name=self.dataset, id=self.cid, train=False, target=self.target)
 
         # model configuration
         self.model = config["model_name"]
-        if self.dataset == "CIFAR10":
-            input_spec = (3,32,32)
-            out_dims = 10
-        elif self.dataset == "CelebA":
-            input_spec = (3,64,64)
-            out_dims = 2
-        self.net: Net = load_model(name=self.model, input_spec=input_spec, out_dims=out_dims)
+        dataset_config = configure_dataset(self.dataset)
+        self.net: Net = load_model(name=self.model, input_spec=dataset_config['input_spec'], out_dims=dataset_config['out_dims'])
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     
     def get_parameters(self, ins: GetParametersIns) -> GetParametersRes:
-        raise Exception("Not implemented (server-side parameter initialization)")
+        parameters = weights_to_parameters(self.net.get_weights())
+        return GetParametersRes(status=Code.OK, parameters=parameters)
     
     def fit(self, ins: FitIns) -> FitRes:
         # unwrapping FitIns
@@ -64,10 +68,12 @@ class FlowerClient(Client):
 
         # dataset configuration train / validation
         trainloader = DataLoader(self.trainset, batch_size=batch_size, shuffle=True, drop_last=True)
+        valloader = DataLoader(self.valset, batch_size=100,shuffle=False)
 
-        results = train(self.net, trainloader=trainloader, epochs=epochs, lr=lr, device=self.device)
+        train(self.net, trainloader=trainloader, epochs=epochs, lr=lr, device=self.device)
+        results = test(self.net, valloader, device=self.device)
         parameters_prime: Parameters = weights_to_parameters(self.net.get_weights())
-        log(INFO, "fit() on client cid=%s: train loss %s / train acc %s", self.cid, results["train_loss"], results["train_acc"])
+        log(INFO, "fit() on client cid=%s: val loss %s / val acc %s", self.cid, results["loss"], results["acc"])
 
         return FitRes(status=Status(Code.OK ,message="Success fit"), parameters=parameters_prime, num_examples=len(self.trainset), metrics=results)
 
@@ -79,10 +85,10 @@ class FlowerClient(Client):
 
         self.net.set_weights(weights)
         testloader = DataLoader(self.testset, batch_size=batch_size)
-        loss, acc = test(self.net, testloader=testloader, steps=steps)
-        log(INFO, "evaluate() on client cid=%s: test loss %s / test acc %s", self.cid, loss, acc)
+        results = test(self.net, testloader=testloader, steps=steps)
+        log(INFO, "evaluate() on client cid=%s: test loss %s / test acc %s", self.cid, results['loss'], results['acc'])
 
-        return EvaluateRes(status=Status(Code.OK, message="Success eval"), loss=float(loss), num_examples=len(self.testset), metrics={"accuracy": acc})
+        return EvaluateRes(status=Status(Code.OK, message="Success eval"), loss=float(results['loss']), num_examples=len(self.testset), metrics={"accuracy": results['acc']})
 
 
 if __name__ == "__main__":

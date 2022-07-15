@@ -55,4 +55,5 @@ pipenv install ray && \
 pipenv install ray[tune] && \
 pipenv install pandas && \
 pipenv install optuna && \
-pipenv install matplotlib 
+pipenv install matplotlib && \
+pipenv install wandb
