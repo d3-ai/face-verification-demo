@@ -23,7 +23,7 @@ warnings.filterwarnings("ignore")
 parser = argparse.ArgumentParser("Flower simulation")
 parser.add_argument("--dataset", type=str, required=True, choices=["CIFAR10", "CelebA"], help="FL config: dataset name")
 parser.add_argument("--target", type=str, required=True, help="FL config: target partitions for common dataset target attributes for celeba")
-parser.add_argument("--model", type=str, required=True, choices=["tiny_CNN", "ResNet18"], help="FL config: model name")
+parser.add_argument("--model", type=str, required=True, choices=["tinyCNN", "ResNet18"], help="FL config: model name")
 parser.add_argument("--num_rounds", type=int, required=False, default=5, help="FL config: aggregation rounds")
 parser.add_argument("--num_clients", type=int, required=False, default=4, help="FL config: number of clients")
 parser.add_argument("--local_epochs", type=int, required=False, default=5, help="Client fit config: local epochs")
@@ -76,8 +76,8 @@ def main():
         testloader = DataLoader(testset, batch_size=10)
         def evaluate(weights: Weights)-> Optional[Tuple[float, Dict[str, Scalar]]]:
             model.set_weights(weights)
-            loss, accuracy = test(model, testloader)
-            return loss, {"accuracy": accuracy}
+            results = test(model, testloader)
+            return results['loss'], {"accuracy": results['acc']}
         return evaluate
 
     def client_fn(cid: str)->Client:
@@ -96,7 +96,7 @@ def main():
     )
     client_resources = {"num_cpus": 1}
     ray_config = {"include_dashboard": False, "address": "auto"}
-    fl.simulation.start_simulation(
+    hist = fl.simulation.start_simulation(
         client_fn = client_fn,
         num_clients=args.num_clients,
         client_resources=client_resources,

@@ -1,7 +1,7 @@
 version: '2.3'
 
 services: 
-  flower_server:
+  flower_mockup:
     container_name: "test"
     build: 
       context: ..
@@ -10,12 +10,13 @@ services:
     shm_size: "16gb"
     volumes:
       - ../shell:/project/shell:ro
-      - ../conf:/project/conf:ro
+      - ../conf:/project/conf
       - ../src/client_app:/project/src/client_app
       - ../src/common:/project/src/common:ro
       - ../src/dataset_app:/project/src/dataset_app:ro
       - ../src/utils:/project/src/utils
       - ../src/models:/project/src/models:ro
+      - ../src/tune_app:/project/src/tune_app
       - ../src/driver.py:/project/src/driver.py
       - ../local:/project/local
       - ../data/CIFAR10/raw:/project/data/CIFAR10/raw:ro

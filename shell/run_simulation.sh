@@ -4,20 +4,20 @@
 
 dataset="CIFAR10"
 target="iid"
-model="tiny_CNN"
+model="tinyCNN"
 
 # fl configuration
-num_rounds=10
+num_rounds=30
 num_clients=10
 
 # fit configuration
 batch_size=128
 local_epochs=1
-lr=0.05
+lr=0.1
 
 seed=1234
 
-exp_dir="./simulation/${dataset}/FedAvg_${model}/"${target}"/R_${num_rounds}_B_${batch_size}_E_${local_epochs}_lr_${lr}_S_${seed}"
+exp_dir="./res/simulation/${dataset}/FedAvg_${model}/"${target}"/R_${num_rounds}_B_${batch_size}_E_${local_epochs}_lr_${lr}_S_${seed}"
 
 if [ ! -e "${exp_dir}" ]; then
     mkdir -p "${exp_dir}/logs/"

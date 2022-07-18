@@ -36,11 +36,9 @@ class FlowerClient(Client):
     def __init__(self, cid: str, config: Dict[str, str]):
         self.cid = cid
 
-        # json configuration
+        # dataset configuration
         self.dataset = config["dataset_name"]
         self.target = config["target_name"]
-
-        # dataset configuration
         validation_ratio=0.8
         dataset = load_dataset(name=self.dataset, id=self.cid, train=True, target=self.target)
         self.trainset, self.valset = split_validation(dataset, split_ratio=validation_ratio)
@@ -68,7 +66,7 @@ class FlowerClient(Client):
 
         # dataset configuration train / validation
         trainloader = DataLoader(self.trainset, batch_size=batch_size, shuffle=True, drop_last=True)
-        valloader = DataLoader(self.valset, batch_size=100,shuffle=False)
+        valloader = DataLoader(self.valset, batch_size=100,shuffle=False, drop_last=False)
 
         train(self.net, trainloader=trainloader, epochs=epochs, lr=lr, device=self.device)
         results = test(self.net, valloader, device=self.device)
@@ -94,7 +92,7 @@ class FlowerClient(Client):
 if __name__ == "__main__":
     client_config = {
         "dataset_name": "CIFAR10",
-        "model_name": "tiny_CNN"
+        "model_name": "tinyCNN"
     }
     def fit_config()->Dict[str, int]:
         config = {

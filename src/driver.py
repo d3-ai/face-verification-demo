@@ -1,10 +1,13 @@
 import sys
-from typing import Dict, Tuple
 import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from common.typing import Scalar
 from models.base_model import Net
+
+# type annotation
+from typing import Dict
+from common.typing import Scalar
+
 
 def train(
     net: Net,

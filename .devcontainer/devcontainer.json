@@ -1,7 +1,7 @@
 {
     "name": "Docker-Python",
     "dockerComposeFile": "./docker-compose.yml",
-    "service": "flower_server",
+    "service": "flower_mockup",
     "workspaceFolder": "/project",
     "customizations": {
         "vscode": {

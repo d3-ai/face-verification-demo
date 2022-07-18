@@ -35,6 +35,7 @@ def load_dataset(
         if id is not None:
             json_path = DATA_ROOT / "CIFAR10" / "partitions" / target 
             dataset = CIFAR10_truncated(
+                root=DATA_ROOT,
                 id=id,
                 json_path=json_path,
                 train=train,
