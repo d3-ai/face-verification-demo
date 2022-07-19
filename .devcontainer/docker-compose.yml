@@ -15,7 +15,7 @@ services:
       - ../conf:/home/$USER/project/conf
       - ../src/client_app:/home/$USER/project/src/client_app:ro
       - ../src/common:/home/$USER/project/src/common:ro
-      - ../src/dataset_app:/home/$USER/project/src/dataset_app
+      - ../src/dataset_app:/home/$USER/project/src/dataset_app:ro
       - ../src/utils:/home/$USER/project/src/utils:ro
       - ../src/models:/home/$USER/project/src/models:ro
       - ../src/tune_app:/home/$USER/project/src/tune_app:ro

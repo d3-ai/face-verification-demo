@@ -5,6 +5,7 @@
 dataset="CIFAR10"
 model="ResNet18"
 max_epochs=10
+num_samples=3
 seed=1234
 yaml_path="./conf/${dataset}/Centralized_${model}/search_space.yaml"
 
@@ -14,6 +15,7 @@ sleep 1
 python ./local/centralized_raytuning.py \
 --dataset ${dataset} \
 --model ${model} \
+--num_samples ${num_samples} \
 --seed ${seed} &
 trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM
 wait
