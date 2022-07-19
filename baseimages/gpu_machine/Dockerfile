@@ -36,16 +36,23 @@ libffi-dev \
 liblzma-dev \
 python3-distutils
 
+ARG USER
+ENV USER=${USER}
+RUN useradd -m ${USER}
+USER ${USER}
+ENV HOME=/home/${USER}
+WORKDIR ${HOME}/project
+ENTRYPOINT [ "./shell/entrypoint.sh" ]
+
 RUN git clone https://github.com/pyenv/pyenv.git ~/.pyenv
 
-ENV PYENV_ROOT /root/.pyenv
+ENV PYENV_ROOT ${HOME}/.pyenv
 ENV PATH $PYENV_ROOT/bin:$PATH
 ENV PATH $PYENV_ROOT/shims:$PATH
 
 RUN eval "$(pyenv init -)" && pyenv install 3.8.0 && pyenv global 3.8.0
 RUN pip install pipenv
 
-WORKDIR /project
 RUN pipenv install --python 3.8.0 
 RUN pipenv install https://download.pytorch.org/whl/cu113/torch-1.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl && \
 pipenv install torchvision https://download.pytorch.org/whl/cu113/torchvision-0.13.0%2Bcu113-cp38-cp38-linux_x86_64.whl && \

@@ -7,32 +7,32 @@ services:
       context: ..
       dockerfile: ./baseimages/gpu_machine/Dockerfile
       shm_size: "16gb"
+      args:
+        - USER=$USER
     shm_size: "16gb"
     volumes:
-      - ../shell:/project/shell:ro
-      - ../conf:/project/conf
-      - ../src/client_app:/project/src/client_app
-      - ../src/common:/project/src/common:ro
-      - ../src/dataset_app:/project/src/dataset_app:ro
-      - ../src/utils:/project/src/utils
-      - ../src/models:/project/src/models:ro
-      - ../src/tune_app:/project/src/tune_app
-      - ../src/driver.py:/project/src/driver.py
-      - ../local:/project/local
-      - ../data/CIFAR10/raw:/project/data/CIFAR10/raw:ro
-      - ../data/celeba/raw:/project/data/celeba/raw:ro
-      - ../data/CIFAR10/partitions:/project/data/CIFAR10/partitions
-      - ../data/celeba/attrs:/project/data/celeba/attrs
+      - ../shell:/home/$USER/project/shell:ro
+      - ../conf:/home/$USER/project/conf
+      - ../src/client_app:/home/$USER/project/src/client_app:ro
+      - ../src/common:/home/$USER/project/src/common:ro
+      - ../src/dataset_app:/home/$USER/project/src/dataset_app
+      - ../src/utils:/home/$USER/project/src/utils:ro
+      - ../src/models:/home/$USER/project/src/models:ro
+      - ../src/tune_app:/home/$USER/project/src/tune_app:ro
+      - ../src/driver.py:/home/$USER/project/src/driver.py:ro
+      - ../local:/home/$USER/project/local:ro
+      - ../data/CIFAR10/raw:/home/$USER/project/data/CIFAR10/raw:ro
+      - ../data/celeba/raw:/home/$USER/project/data/celeba/raw:ro
+      - ../data/CIFAR10/partitions:/home/$USER/project/data/CIFAR10/partitions
+      - ../data/celeba/attrs:/home/$USER/project/data/celeba/attrs
     runtime: nvidia
     secrets:
       - wandb_api_key
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=all
-      - DATA_ROOT=/project/data
+      - DATA_ROOT=/home/$USER/project/data
       - WANDB_API_KEY_FILE=/run/secrets/wandb_api_key
 secrets:
   wandb_api_key:
     file: ./.wandb_api_key
-      # - WANDB_API_KEY=a8f68add7a6f48ba44ac57a91ed239a97e9605d9
-    

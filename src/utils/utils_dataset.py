@@ -13,6 +13,7 @@ from dataset_app.datasets import (
     FashionMNIST_truncated,
     CIFAR10_truncated,
 )
+DATA_ROOT = Path(os.environ["DATA_ROOT"])
 
 def load_dataset(
     name: str,
@@ -21,7 +22,6 @@ def load_dataset(
     dataidxs: List[np.ndarray]=None,
     target: str = None,
     download: bool=False):
-    DATA_ROOT = Path(os.environ["DATA_ROOT"])
     if name == "FashionMNIST":
         transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,),(0.3081,))])
         dataset = FashionMNIST_truncated(
