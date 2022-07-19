@@ -3,7 +3,7 @@ max_epochs:
   value: 10
 model_name:
   sampler: "no"
-  value: "tiny_CNN"
+  value: "tinyCNN"
 dataset_name:
   sampler: "no"
   value: "CIFAR10"

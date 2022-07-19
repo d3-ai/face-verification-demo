@@ -1,0 +1,1 @@
+{"max_epochs": 10, "model_name": "tinyCNN", "dataset_name": "CIFAR10", "batch_size": 256, "lr": 0.004750206449150543}

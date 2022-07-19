@@ -11,7 +11,7 @@ from utils.utils_model import load_model
 
 parser = argparse.ArgumentParser("Simulation: Centralized learning.")
 parser.add_argument("--dataset", type=str, required=False, choices=["CIFAR10", "CelebA"], default="CIFAR10", help="dataset name for FL training")
-parser.add_argument("--model", type=str, required=False, choices=["tiny_CNN", "ResNet18"], default="tiny_CNN", help="model name for Centralized training")
+parser.add_argument("--model", type=str, required=False, choices=["tinyCNN", "ResNet18"], default="tinyCNN", help="model name for Centralized training")
 parser.add_argument("--seed", type=int, required=False, default=1234, help="Random seed")
 
 

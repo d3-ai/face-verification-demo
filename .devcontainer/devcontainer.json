@@ -2,7 +2,7 @@
     "name": "Docker-Python",
     "dockerComposeFile": "./docker-compose.yml",
     "service": "flower_mockup",
-    "workspaceFolder": "/project",
+    "workspaceFolder": "/home/yamasaki/project",
     "customizations": {
         "vscode": {
             "settings": {},

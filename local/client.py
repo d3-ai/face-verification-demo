@@ -17,7 +17,7 @@ parser.add_argument("--server_address", type=str, required=True, default="0.0.0.
 parser.add_argument("--cid", type=str, required=True, help="Client id for data partitioning.")
 parser.add_argument("--dataset", type=str, required=False, choices=["CIFAR10", "CelebA"], default="CIFAR10", help="dataset name for FL training")
 parser.add_argument("--target", type=str, required=True, help="FL config: target partitions for common dataset target attributes for celeba")
-parser.add_argument("--model", type=str, required=False, choices=["tiny_CNN", "ResNet18"], default="tiny_CNN", help="model name for FL training")
+parser.add_argument("--model", type=str, required=False, choices=["tinyCNN", "ResNet18"], default="tinyCNN", help="model name for FL training")
 parser.add_argument("--seed", type=int, required=False, default=1234, help="Random seed")
 
 def set_seed(seed: int):

@@ -3,7 +3,7 @@
 . ./shell/path.sh
 
 dataset="CIFAR10"
-model="ResNet18"
+model="tinyCNN"
 max_epochs=10
 num_samples=3
 seed=1234

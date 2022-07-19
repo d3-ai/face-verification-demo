@@ -1,4 +1,4 @@
-version: '2.3'
+version: "3.8"
 
 services: 
   flower_mockup:
@@ -6,12 +6,18 @@ services:
     build: 
       context: ..
       dockerfile: ./baseimages/gpu_machine/Dockerfile
-      shm_size: "16gb"
-      args:
+      args: 
         - USER=$USER
     shm_size: "16gb"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["0"]
+              capabilities: [gpu]
     volumes:
-      - ../shell:/home/$USER/project/shell:ro
+      - ../shell:/home/$USER/project/shell
       - ../conf:/home/$USER/project/conf
       - ../src/client_app:/home/$USER/project/src/client_app:ro
       - ../src/common:/home/$USER/project/src/common:ro
@@ -21,18 +27,16 @@ services:
       - ../src/tune_app:/home/$USER/project/src/tune_app:ro
       - ../src/driver.py:/home/$USER/project/src/driver.py:ro
       - ../local:/home/$USER/project/local:ro
-      - ../data/CIFAR10/raw:/home/$USER/project/data/CIFAR10/raw:ro
-      - ../data/celeba/raw:/home/$USER/project/data/celeba/raw:ro
+      - ../data/CIFAR10/raw:/home/$USER/project/data/CIFAR10/raw
       - ../data/CIFAR10/partitions:/home/$USER/project/data/CIFAR10/partitions
+      - ../data/celeba/raw:/home/$USER/project/data/celeba/raw:ro
       - ../data/celeba/attrs:/home/$USER/project/data/celeba/attrs
-    runtime: nvidia
     secrets:
       - wandb_api_key
     environment:
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=all
       - DATA_ROOT=/home/$USER/project/data
       - WANDB_API_KEY_FILE=/run/secrets/wandb_api_key
+
 secrets:
   wandb_api_key:
     file: ./.wandb_api_key
