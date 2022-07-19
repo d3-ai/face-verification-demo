@@ -24,6 +24,7 @@ services:
       - ../src/dataset_app:/home/$USER/project/src/dataset_app:ro
       - ../src/utils:/home/$USER/project/src/utils:ro
       - ../src/models:/home/$USER/project/src/models:ro
+      - ../src/server_app:/home/$USER/project/src/server_app:ro
       - ../src/tune_app:/home/$USER/project/src/tune_app:ro
       - ../src/driver.py:/home/$USER/project/src/driver.py:ro
       - ../local:/home/$USER/project/local:ro

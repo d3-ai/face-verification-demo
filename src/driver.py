@@ -16,7 +16,6 @@ def train(
     lr: float,
     device: str,
     use_tqdm: bool=False,)->None:
-    print("Starting training...")
     loader = tqdm(trainloader, file=sys.stdout) if use_tqdm else trainloader
     net.to(device)
     criterion = torch.nn.CrossEntropyLoss().to(device)
@@ -37,7 +36,6 @@ def test(
     testloader: DataLoader,
     steps: int = None,
     device: str = "cpu")->Dict[str, Scalar]:
-    print("Starting evaluation...")
     net.to(device)
     criterion = torch.nn.CrossEntropyLoss()
     correct, total, steps, loss = 0,0,0,0.0

@@ -54,8 +54,9 @@ def centralized(config):
 
         val_losses.append(val_res['loss'])
         val_acces.append(val_res['acc'])
-        if val_res['loss'] == min(val_losses):
-            save_model(wandb.run.dir, 'checkpoint_best.pt', net, val_losses, val_acces, epoch)
+        # if val_res['loss'] == min(val_losses):
+            # save_model(wandb.run.dir, 'checkpoint_best.pt', net, val_losses, val_acces, epoch)
+            # file_path = os.path.join(wandb.run.dir,"checkpoint_best.pt")
         wandb.log({"loss": val_res['loss'], "accuracy": val_res['acc'], "test_loss": test_res['loss'], "test_acc": test_res['acc']})
         tune.report(loss=val_res['loss'], accuracy=val_res['acc'],test_loss=test_res['loss'],test_acc=test_res['acc'],)
 

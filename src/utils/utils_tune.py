@@ -68,7 +68,7 @@ def run_tuning(
         raise NotImplementedError(f"{search_alg_name} is not implemented")
     
     if schedular_name == "ASHA":
-        schedular = ASHAScheduler(metric=metric, mode=mode,grace_period=5, reduction_factor=2, max_t=10)
+        schedular = ASHAScheduler(metric=metric, mode=mode,grace_period=int(config["max_epochs"]/10), reduction_factor=2, max_t=config["max_epochs"])
     else:
         raise NotImplementedError(f"{schedular_name} is not implemented")
 
