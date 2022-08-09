@@ -22,12 +22,12 @@ services:
       - ../src/client_app:/home/$USER/project/src/client_app:ro
       - ../src/common:/home/$USER/project/src/common:ro
       - ../src/dataset_app:/home/$USER/project/src/dataset_app:ro
-      - ../src/utils:/home/$USER/project/src/utils:ro
-      - ../src/models:/home/$USER/project/src/models:ro
+      - ../src/utils:/home/$USER/project/src/utils
+      - ../src/models:/home/$USER/project/src/models
       - ../src/server_app:/home/$USER/project/src/server_app:ro
       - ../src/tune_app:/home/$USER/project/src/tune_app:ro
-      - ../src/driver.py:/home/$USER/project/src/driver.py:ro
-      - ../local:/home/$USER/project/local:ro
+      - ../src/driver.py:/home/$USER/project/src/driver.py
+      - ../local:/home/$USER/project/local
       - ../data/CIFAR10/raw:/home/$USER/project/data/CIFAR10/raw
       - ../data/CIFAR10/partitions:/home/$USER/project/data/CIFAR10/partitions
       - ../data/celeba/raw:/home/$USER/project/data/celeba/raw:ro

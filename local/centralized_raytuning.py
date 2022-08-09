@@ -34,7 +34,7 @@ def main():
         name="CIFAR10_Centralized",
         yaml_path=yaml_path,
         group=group,
-        resources={"cpu": 2, "gpu":0.0625},
+        resources={"cpu": 2, "gpu":0.08},
         num_samples=args.num_samples,
     )
     

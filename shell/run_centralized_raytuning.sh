@@ -3,9 +3,8 @@
 . ./shell/path.sh
 
 dataset="CIFAR10"
-model="tinyCNN"
-max_epochs=10
-num_samples=3
+model="ResNet18"
+num_samples=100
 seed=1234
 yaml_path="./conf/${dataset}/Centralized_${model}/search_space.yaml"
 
