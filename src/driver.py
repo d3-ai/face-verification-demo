@@ -14,21 +14,33 @@ def train(
     trainloader: DataLoader,
     epochs: int,
     lr: float,
-    device: str,
+    momentum: float = 0.0,
+    weight_decay: float = 5e-4,
+    device: str = "cpu",
     use_tqdm: bool=False,)->None:
-    loader = tqdm(trainloader, file=sys.stdout) if use_tqdm else trainloader
     net.to(device)
     criterion = torch.nn.CrossEntropyLoss().to(device)
-    optimizer = torch.optim.SGD(net.parameters(), lr=lr)
+    optimizer = torch.optim.SGD(net.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
     net.train()
-    for _ in range(epochs):
-        for images, labels in loader:
-            images, labels = images.to(device), labels.to(device)
-            optimizer.zero_grad()
-            outputs = net(images)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
+    if use_tqdm:
+        for epoch in range(epochs):
+            for _, data in tqdm(enumerate(trainloader) , total=len(trainloader), file=sys.stdout, desc=f"[Epoch: {epoch}/ {epochs}]", leave=False):
+                images, labels = data[0].to(device, non_blocking=True), data[1].to(device, non_blocking=True)
+                optimizer.zero_grad()
+                outputs = net(images)
+                loss = criterion(outputs, labels)
+                loss.backward()
+                optimizer.step()
+    else:
+        for _ in range(epochs):
+            for images, labels in trainloader:
+                images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True)
+                optimizer.zero_grad()
+                outputs = net(images)
+                loss = criterion(outputs, labels)
+                loss.backward()
+                optimizer.step()
+
     net.to("cpu")
 
 def test(

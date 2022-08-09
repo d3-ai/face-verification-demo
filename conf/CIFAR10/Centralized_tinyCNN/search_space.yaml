@@ -1,6 +1,6 @@
 max_epochs:
   sampler: "no"
-  value: 10
+  value: 500
 model_name:
   sampler: "no"
   value: "tinyCNN"

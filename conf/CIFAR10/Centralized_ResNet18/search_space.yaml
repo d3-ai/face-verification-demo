@@ -1,6 +1,6 @@
 max_epochs:
   sampler: "no"
-  value: 10
+  value: 500
 model_name:
   sampler: "no"
   value: "ResNet18"
@@ -11,7 +11,11 @@ batch_size:
   sampler: "choice"
   categories: [64, 128, 256, 512, 1024]
 lr:
-  sampler: "loguniform"
-  lower: 0.00001
-  upper: 0.1
-  base: 0.0005
+  sampler: "choice"
+  categories: [0.1, 0.05, 0.01]
+momentum:
+  sampler: "choice"
+  categories: [0.0, 0.9]
+weight_decay:
+  sampler: "choice"
+  categories: [0.0, 0.00005, 0.00001, 0.0001]

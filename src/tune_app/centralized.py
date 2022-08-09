@@ -48,7 +48,7 @@ def centralized(config):
     val_acces: List[float] = []
 
     for epoch in range(config["max_epochs"]):
-        train(net=net, trainloader=trainloader, epochs=1, lr=config["lr"], device=device)
+        train(net=net, trainloader=trainloader, epochs=1, lr=config["lr"], momentum=config["momentum"], weight_decay=config["weight_decay"], device=device)
         val_res = test(net=net, testloader=valloader, device=device)
         test_res = test(net=net, testloader=testloader, device=device)
 
