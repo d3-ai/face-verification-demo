@@ -4,11 +4,14 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-flwr = "*"
+flwr = "1.0.0"
 torch = "*"
 torchvision = "*"
 tqdm = "*"
 matplotlib = "*"
+ray = "1.13.0"
+wandb = "0.13.1"
+pandas = "*"
 
 [dev-packages]
 

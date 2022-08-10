@@ -6,7 +6,7 @@ from torch.utils.data import Dataset, random_split
 from torchvision.transforms import transforms
 from pathlib import Path
 from typing import List, Dict, Tuple
-from common.typing import Scalar
+from common import Scalar
 
 from dataset_app.datasets import (
     CelebaDataset,

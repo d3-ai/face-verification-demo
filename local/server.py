@@ -13,9 +13,9 @@ from driver import test
 from models.base_model import Net
 from utils.utils_dataset import load_dataset
 from utils.utils_model import load_model
-from common.parameter import weights_to_parameters
+from common import ndarrays_to_parameters
 
-from common.typing import Parameters, Scalar, Weights
+from common import Parameters, Scalar, NDArrays
 from typing import Dict, Optional, Tuple
 warnings.filterwarnings("ignore")
 
@@ -53,7 +53,7 @@ def main():
         out_dims = 2
     
     model: Net = load_model(name=args.model, input_spec=input_spec, out_dims=out_dims)
-    init_parameters: Parameters = weights_to_parameters(model.get_weights())
+    init_parameters: Parameters = ndarrays_to_parameters(model.get_weights())
 
     def fit_config(rnd: int)-> Dict[str, Scalar]:
         config = {
@@ -75,7 +75,7 @@ def main():
         testset = load_dataset(name=dataset, train=False, target=target)
         testloader = DataLoader(testset, batch_size=10)
         def evaluate(
-            weights: Weights,
+            weights: NDArrays,
         ) -> Optional[Tuple[float, Dict[str, Scalar]]]:
             model.set_weights(weights)
             loss, accuracy = test(model, testloader)

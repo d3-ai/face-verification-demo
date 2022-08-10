@@ -2,16 +2,16 @@ import torch
 import torch.nn as nn
 
 from collections import OrderedDict
-from common.typing import Weights
+from common import NDArrays
 
 class Net(nn.Module):
-    def get_weights(self)->Weights:
+    def get_weights(self)->NDArrays:
         """
         Get model weights as a list of NumPy ndarrays.
         """
         return [val.cpu().numpy() for _, val in self.state_dict().items()]
     
-    def set_weights(self, weights: Weights)->None:
+    def set_weights(self, weights: NDArrays)->None:
         """
         Set model weights from a list of NumPy ndarrays.
         """

@@ -2,8 +2,6 @@ import argparse
 import random
 import numpy as np
 import torch
-import torch.nn as nn
-from torchvision.models import resnet18, ResNet18_Weights
 from utils.utils_dataset import load_dataset
 from torch.utils.data import DataLoader
 from driver import train, test
