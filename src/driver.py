@@ -34,7 +34,7 @@ def train(
     else:
         for _ in range(epochs):
             for images, labels in trainloader:
-                images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True)
+                images, labels = images.to(device), labels.to(device)
                 optimizer.zero_grad()
                 outputs = net(images)
                 loss = criterion(outputs, labels)

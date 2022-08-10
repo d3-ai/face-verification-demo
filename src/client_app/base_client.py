@@ -14,8 +14,8 @@ from utils.utils_dataset import (
     split_validation
 )
 from utils.utils_model import load_model
-from common.parameter import parameters_to_weights, weights_to_parameters
-from common.typing import (
+from common import parameters_to_ndarrays, ndarrays_to_parameters
+from common import (
     Status,
     Code,
     GetParametersIns,
@@ -25,9 +25,11 @@ from common.typing import (
     EvaluateIns,
     EvaluateRes,
     Parameters,
-    Weights,
+    NDArrays,
+    Scalar
 )
 from .client import Client
+from .numpy_client import NumPyClient
 from typing import Dict
 
 warnings.filterwarnings("ignore")
@@ -51,15 +53,16 @@ class FlowerClient(Client):
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     
     def get_parameters(self, ins: GetParametersIns) -> GetParametersRes:
-        parameters = weights_to_parameters(self.net.get_weights())
+        parameters = ndarrays_to_parameters(self.net.get_weights())
         return GetParametersRes(status=Code.OK, parameters=parameters)
     
     def fit(self, ins: FitIns) -> FitRes:
         # unwrapping FitIns
-        weights: Weights = parameters_to_weights(ins.parameters)
+        weights: NDArrays = parameters_to_ndarrays(ins.parameters)
         epochs: int = int(ins.config["local_epochs"])
         batch_size: int = int(ins.config["batch_size"])
         lr: float = float(ins.config["lr"])
+        weight_decay: float = float(ins.config["weight_decay"])
 
         # set parameters
         self.net.set_weights(weights)
@@ -68,16 +71,69 @@ class FlowerClient(Client):
         trainloader = DataLoader(self.trainset, batch_size=batch_size, shuffle=True, drop_last=True)
         valloader = DataLoader(self.valset, batch_size=100,shuffle=False, drop_last=False)
 
-        train(self.net, trainloader=trainloader, epochs=epochs, lr=lr, device=self.device)
+        train(self.net, trainloader=trainloader, epochs=epochs, lr=lr, weight_decay=weight_decay, device=self.device)
         results = test(self.net, valloader, device=self.device)
-        parameters_prime: Parameters = weights_to_parameters(self.net.get_weights())
+        parameters_prime: Parameters = ndarrays_to_parameters(self.net.get_weights())
         log(INFO, "fit() on client cid=%s: val loss %s / val acc %s", self.cid, results["loss"], results["acc"])
 
-        return FitRes(status=Status(Code.OK ,message="Success fit"), parameters=parameters_prime, num_examples=len(self.trainset), metrics=results)
+        return FitRes(status=Status(Code.OK ,message="Success fit"), parameters=parameters_prime, num_examples=len(self.trainset), metrics={})
 
     def evaluate(self, ins: EvaluateIns) -> EvaluateRes:
         # unwrap FitIns
-        weights: Weights = parameters_to_weights(ins.parameters)
+        weights: NDArrays = parameters_to_ndarrays(ins.parameters)
+        batch_size: int = int(ins.config["batch_size"])
+
+        self.net.set_weights(weights)
+        testloader = DataLoader(self.testset, batch_size=batch_size)
+        results = test(self.net, testloader=testloader)
+        log(INFO, "evaluate() on client cid=%s: test loss %s / test acc %s", self.cid, results['loss'], results['acc'])
+
+        return EvaluateRes(status=Status(Code.OK, message="Success eval"), loss=float(results['loss']), num_examples=len(self.testset), metrics={"accuracy": results['acc']})
+
+class FlowerNumPyClient(NumPyClient):
+    def __init__(self, cid: str, config: Dict[str, str]):
+        self.cid = cid
+
+        # dataset configuration
+        self.dataset = config["dataset_name"]
+        self.target = config["target_name"]
+        validation_ratio=0.8
+        dataset = load_dataset(name=self.dataset, id=self.cid, train=True, target=self.target)
+        self.trainset, self.valset = split_validation(dataset, split_ratio=validation_ratio)
+        self.testset = load_dataset(name=self.dataset, id=self.cid, train=False, target=self.target)
+
+        # model configuration
+        self.model = config["model_name"]
+        dataset_config = configure_dataset(self.dataset)
+        self.net: Net = load_model(name=self.model, input_spec=dataset_config['input_spec'], out_dims=dataset_config['out_dims'])
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    
+    def get_parameters(self, config) -> NDArrays:
+        return self.net.get_weights()
+    
+    def fit(self, parameters: NDArrays, config: Dict[str, Scalar]) -> FitRes:
+        # unwrapping FitIns
+        epochs: int = int(config["local_epochs"])
+        batch_size: int = int(config["batch_size"])
+        lr: float = float(config["lr"])
+
+        # set parameters
+        self.net.set_weights(parameters)
+
+        # dataset configuration train / validation
+        trainloader = DataLoader(self.trainset, batch_size=batch_size, shuffle=True, drop_last=True)
+        valloader = DataLoader(self.valset, batch_size=100,shuffle=False, drop_last=False)
+
+        train(self.net, trainloader=trainloader, epochs=epochs, lr=lr, device=self.device)
+        results: Dict[str, Scalar] = test(self.net, valloader, device=self.device)
+        parameters_prime: NDArrays = self.net.get_weights()
+        log(INFO, "fit() on client cid=%s: val loss %s / val acc %s", self.cid, results["loss"], results["acc"])
+
+        return parameters_prime, len(self.trainset), results
+
+    def evaluate(self, ins: EvaluateIns) -> EvaluateRes:
+        # unwrap FitIns
+        weights: NDArrays = parameters_to_ndarrays(ins.parameters)
         steps: int = int(ins.config["val_steps"])
         batch_size: int = int(ins.config["batch_size"])
 
@@ -87,7 +143,6 @@ class FlowerClient(Client):
         log(INFO, "evaluate() on client cid=%s: test loss %s / test acc %s", self.cid, results['loss'], results['acc'])
 
         return EvaluateRes(status=Status(Code.OK, message="Success eval"), loss=float(results['loss']), num_examples=len(self.testset), metrics={"accuracy": results['acc']})
-
 
 if __name__ == "__main__":
     client_config = {
@@ -103,7 +158,7 @@ if __name__ == "__main__":
     client = FlowerClient(cid="0", config=client_config)
     config = fit_config()
     model = load_model(name="tiny_CNN", input_spec=(3,32,32))
-    init_parameters = weights_to_parameters(model.get_weights())
+    init_parameters = ndarrays_to_parameters(model.get_weights())
     fit_ins = FitIns(parameters=init_parameters, config=config)
     eval_ins = EvaluateIns(parameters=init_parameters, config={"val_steps": 5, "batch_size": 10})
     client.fit(fit_ins)

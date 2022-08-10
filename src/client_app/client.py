@@ -15,8 +15,8 @@
 """Flower client (abstract base class)."""
 
 
-from abc import ABC, abstractmethod
-from common.typing import (
+from abc import ABC
+from common import (
     EvaluateIns,
     EvaluateRes,
     FitIns,
@@ -44,7 +44,6 @@ class Client(ABC):
             The current client properties.
         """
 
-    @abstractmethod
     def get_parameters(self, ins: GetParametersIns) -> GetParametersRes:
         """Return the current local model parameters.
         Parameters
@@ -58,9 +57,8 @@ class Client(ABC):
             The current local model parameters.
         """
 
-    @abstractmethod
     def fit(self, ins: FitIns) -> FitRes:
-        """Refine the provided weights using the locally held dataset.
+        """Refine the provided parameters using the locally held dataset.
         Parameters
         ----------
         ins : FitIns
@@ -74,9 +72,8 @@ class Client(ABC):
             such as the number of local training examples used for training.
         """
 
-    @abstractmethod
     def evaluate(self, ins: EvaluateIns) -> EvaluateRes:
-        """Evaluate the provided weights using the locally held dataset.
+        """Evaluate the provided parameters using the locally held dataset.
         Parameters
         ----------
         ins : EvaluateIns
@@ -95,3 +92,18 @@ class Client(ABC):
 def has_get_properties(client: Client) -> bool:
     """Check if Client implements get_properties."""
     return type(client).get_properties != Client.get_properties
+
+
+def has_get_parameters(client: Client) -> bool:
+    """Check if Client implements get_parameters."""
+    return type(client).get_parameters != Client.get_parameters
+
+
+def has_fit(client: Client) -> bool:
+    """Check if Client implements fit."""
+    return type(client).fit != Client.fit
+
+
+def has_evaluate(client: Client) -> bool:
+    """Check if Client implements evaluate."""
+    return type(client).evaluate != Client.evaluate

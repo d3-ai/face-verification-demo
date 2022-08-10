@@ -1,9 +1,9 @@
 /.devcontainer/.wandb_api_key
 /data/*/raw
-/exp
+/res
 /local/test.py
 /local/tuning_test.py
-/src/client_app/ray_client.py
+# /src/client_app/ray_client.py
 Pipfile.lock
 setup_pi.sh
 *.tar

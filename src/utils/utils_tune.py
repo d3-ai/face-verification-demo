@@ -8,7 +8,7 @@ from ray.tune.schedulers import ASHAScheduler
 from ray.tune.suggest.optuna import OptunaSearch
 from ray.tune.integration.docker import DockerSyncer
 
-from common.typing import Scalar
+from common import Scalar
 from typing import Any, Callable, Dict, Optional
 
 def trial_name_creator(trial: Trial):

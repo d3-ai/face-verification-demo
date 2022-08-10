@@ -7,12 +7,13 @@ target="iid"
 model="tinyCNN"
 
 # fl configuration
-num_rounds=30
+num_rounds=5
 num_clients=10
 
 # fit configuration
 batch_size=128
 local_epochs=1
+weight_decay=0.0005
 lr=0.1
 
 seed=1234
@@ -36,6 +37,8 @@ python ./local/simulation.py \
 --model ${model} \
 --local_epochs ${local_epochs} \
 --batch_size ${batch_size} \
+--lr ${lr} \
+--weight_decay ${weight_decay} \
 --seed ${seed} \
 2>"${exp_dir}/logs/flower.log" &
 
