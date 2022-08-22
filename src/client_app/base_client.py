@@ -1,5 +1,7 @@
+import os
+import timeit
 import warnings
-
+import ray
 import torch
 from torch.utils.data import DataLoader
 
@@ -68,7 +70,7 @@ class FlowerClient(Client):
         self.net.set_weights(weights)
 
         # dataset configuration train / validation
-        trainloader = DataLoader(self.trainset, batch_size=batch_size, shuffle=True, drop_last=True)
+        trainloader = DataLoader(self.trainset, batch_size=batch_size, num_workers=2, pin_memory=True, shuffle=True, drop_last=True)
         valloader = DataLoader(self.valset, batch_size=100,shuffle=False, drop_last=False)
 
         train(self.net, trainloader=trainloader, epochs=epochs, lr=lr, weight_decay=weight_decay, device=self.device)
@@ -121,25 +123,23 @@ class FlowerNumPyClient(NumPyClient):
         self.net.set_weights(parameters)
 
         # dataset configuration train / validation
-        trainloader = DataLoader(self.trainset, batch_size=batch_size, shuffle=True, drop_last=True)
+        trainloader = DataLoader(self.trainset, batch_size=batch_size, num_workers=2, pin_memory=True, shuffle=True, drop_last=True)
         valloader = DataLoader(self.valset, batch_size=100,shuffle=False, drop_last=False)
 
         train(self.net, trainloader=trainloader, epochs=epochs, lr=lr, device=self.device)
-        results: Dict[str, Scalar] = test(self.net, valloader, device=self.device)
         parameters_prime: NDArrays = self.net.get_weights()
-        log(INFO, "fit() on client cid=%s: val loss %s / val acc %s", self.cid, results["loss"], results["acc"])
+        results: Dict[str, Scalar] = test(self.net, valloader, device=self.device)
 
-        return parameters_prime, len(self.trainset), results
+        return parameters_prime, len(self.trainset), {}
 
     def evaluate(self, ins: EvaluateIns) -> EvaluateRes:
         # unwrap FitIns
         weights: NDArrays = parameters_to_ndarrays(ins.parameters)
-        steps: int = int(ins.config["val_steps"])
         batch_size: int = int(ins.config["batch_size"])
 
         self.net.set_weights(weights)
         testloader = DataLoader(self.testset, batch_size=batch_size)
-        results = test(self.net, testloader=testloader, steps=steps)
+        results = test(self.net, testloader=testloader,)
         log(INFO, "evaluate() on client cid=%s: test loss %s / test acc %s", self.cid, results['loss'], results['acc'])
 
         return EvaluateRes(status=Status(Code.OK, message="Success eval"), loss=float(results['loss']), num_examples=len(self.testset), metrics={"accuracy": results['acc']})

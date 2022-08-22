@@ -8,24 +8,25 @@ services:
       dockerfile: ./baseimages/gpu_machine/Dockerfile
       args: 
         - USER=$USER
-    shm_size: "16gb"
+    shm_size: "32gb"
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
-              device_ids: ["0"]
+              device_ids: ["0:0","0:1", "0:2", "0:3", "1:0", "1:1", "1:2", "1:3", "1:4", "1:5", "1:6"]
               capabilities: [gpu]
     volumes:
       - ../shell:/home/$USER/project/shell
       - ../conf:/home/$USER/project/conf
-      - ../src/client_app:/home/$USER/project/src/client_app:ro
+      - ../src/client_app:/home/$USER/project/src/client_app
       - ../src/common:/home/$USER/project/src/common:ro
       - ../src/dataset_app:/home/$USER/project/src/dataset_app:ro
       - ../src/utils:/home/$USER/project/src/utils
       - ../src/models:/home/$USER/project/src/models
-      - ../src/server_app:/home/$USER/project/src/server_app:ro
-      - ../src/tune_app:/home/$USER/project/src/tune_app:ro
+      - ../src/server_app:/home/$USER/project/src/server_app
+      - ../src/simulation_app:/home/$USER/project/src/simulation_app
+      - ../src/tune_app:/home/$USER/project/src/tune_app
       - ../src/driver.py:/home/$USER/project/src/driver.py
       - ../local:/home/$USER/project/local
       - ../data/CIFAR10/raw:/home/$USER/project/data/CIFAR10/raw
@@ -34,10 +35,14 @@ services:
       - ../data/celeba/attrs:/home/$USER/project/data/celeba/attrs
     secrets:
       - wandb_api_key
+      - gpu_uuid
     environment:
       - DATA_ROOT=/home/$USER/project/data
       - WANDB_API_KEY_FILE=/run/secrets/wandb_api_key
+      - CUDA_VISIBLE_DEVICES_FILE=/run/secrets/gpu_uuid
 
 secrets:
   wandb_api_key:
     file: ./.wandb_api_key
+  gpu_uuid:
+    file: ./.gpu_uuid

@@ -2,19 +2,26 @@
 
 . ./shell/path.sh
 
+if [ ! -z $CUDA_VISIBLE_DEVICES_FILE ]; then
+while read line
+do
+export CUDA_VISIBLE_DEVICES="$line"
+done < $CUDA_VISIBLE_DEVICES_FILE
+fi
+
 dataset="CIFAR10"
 target="iid"
-model="tinyCNN"
+model="ResNet18"
 
 # fl configuration
-num_rounds=5
+num_rounds=10
 num_clients=10
 
 # fit configuration
 batch_size=128
 local_epochs=1
 weight_decay=0.0005
-lr=0.1
+lr=0.01
 
 seed=1234
 
@@ -26,7 +33,7 @@ if [ ! -e "${exp_dir}" ]; then
     mkdir -p "${exp_dir}/metrics/"
 fi
 
-ray start --head --min-worker-port 20000 --max-worker-port 29999
+ray start --head --min-worker-port 20000 --max-worker-port 29999 --num-cpus 20 --num-gpus 10
 sleep 1 
 
 python ./local/simulation.py \

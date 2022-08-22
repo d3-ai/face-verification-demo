@@ -15,7 +15,7 @@ def train(
     epochs: int,
     lr: float,
     momentum: float = 0.0,
-    weight_decay: float = 5e-4,
+    weight_decay: float = 0.0,
     device: str = "cpu",
     use_tqdm: bool=False,)->None:
     net.to(device)
@@ -34,14 +34,13 @@ def train(
     else:
         for _ in range(epochs):
             for images, labels in trainloader:
-                images, labels = images.to(device), labels.to(device)
+                images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True)
                 optimizer.zero_grad()
                 outputs = net(images)
                 loss = criterion(outputs, labels)
                 loss.backward()
                 optimizer.step()
-
-    net.to("cpu")
+    # net.to("cpu")
 
 def test(
     net: Net,
@@ -56,7 +55,7 @@ def test(
         for images, labels in testloader:
             images, labels = images.to(device), labels.to(device)
             outputs = net(images)
-            loss += criterion(outputs, labels).item()
+            loss += float(criterion(outputs, labels).item())
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()

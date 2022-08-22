@@ -11,7 +11,7 @@ from utils.utils_tune import run_tuning
 
 parser=argparse.ArgumentParser("Centralized traing with ray tune.")
 parser.add_argument("--dataset", type=str, required=True, choices=["CIFAR10", "CelebA"], help="Centralized ray tuning config: dataset (project) name")
-parser.add_argument("--model", type=str, required=True, choices=["tinyCNN", "ResNet18"], help="Centralized ray tuning config: model name")
+parser.add_argument("--model", type=str, required=True, choices=["tinyCNN", "ResNet18", "GNResNet18"], help="Centralized ray tuning config: model name")
 parser.add_argument("--num_samples", type=int, required=True, help="Centralized ray tuning config: num of trial")
 parser.add_argument("--seed", type=int, required=False, default=1234, help="Random seed")
 

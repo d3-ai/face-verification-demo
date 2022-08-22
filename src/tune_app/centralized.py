@@ -36,8 +36,8 @@ def centralized(config):
         device = "cuda:0"
         kwargs["num_workers"] = 2
         kwargs["pin_memory"] = True
-        if torch.cuda.device_count()>1:
-            net = torch.nn.DataParallel(net)
+        # if torch.cuda.device_count()>1:
+            # net = torch.nn.DataParallel(net)
     net.to(device)
     
     trainloader: DataLoader = DataLoader(trainset, batch_size=config["batch_size"], shuffle=True, **kwargs)
