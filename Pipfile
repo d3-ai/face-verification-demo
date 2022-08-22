@@ -4,16 +4,17 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-flwr = "1.0.0"
-torch = "*"
-torchvision = "*"
+torch = {file = "https://download.pytorch.org/whl/cu113/torch-1.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl"}
+torchvision = {file = "https://download.pytorch.org/whl/cu113/torchvision-0.13.0%2Bcu113-cp38-cp38-linux_x86_64.whl"}
+flwr = "==1.0.0"
 tqdm = "*"
-matplotlib = "*"
-ray = "1.13.0"
-wandb = "0.13.1"
+ray = {extras = ["tune"], version = "*"}
 pandas = "*"
+optuna = "*"
+matplotlib = "*"
+wandb = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.8.0"
+python_version = "3.8"

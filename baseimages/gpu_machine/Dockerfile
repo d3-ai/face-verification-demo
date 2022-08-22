@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.4.0-base-ubuntu20.04
+FROM nvidia/cuda:11.3.0-base-ubuntu20.04
 
 RUN apt-get clean && apt-get update && apt-get install -y locales
 
@@ -55,13 +55,14 @@ RUN eval "$(pyenv init -)" && pyenv install 3.8.0 && pyenv global 3.8.0
 RUN pip install pipenv
 
 RUN pipenv install --python 3.8.0 
-RUN pipenv install https://download.pytorch.org/whl/cu113/torch-1.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl && \
-pipenv install torchvision https://download.pytorch.org/whl/cu113/torchvision-0.13.0%2Bcu113-cp38-cp38-linux_x86_64.whl && \
-pipenv install flwr && \
-pipenv install tqdm && \
-pipenv install ray && \
-pipenv install ray[tune] && \
-pipenv install pandas && \
-pipenv install optuna && \
-pipenv install matplotlib && \
-pipenv install wandb
+RUN pipenv install https://download.pytorch.org/whl/cu113/torch-1.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl --skip-lock && \
+pipenv install torchvision https://download.pytorch.org/whl/cu113/torchvision-0.13.0%2Bcu113-cp38-cp38-linux_x86_64.whl --skip-lock && \
+pipenv install flwr==1.0.0 --skip-lock && \
+pipenv install tqdm --skip-lock && \
+pipenv install ray==1.3.0 --skip-lock && \
+pipenv install ray[tune] --skip-lock && \
+pipenv install pandas --skip-lock && \
+pipenv install optuna --skip-lock && \
+pipenv install matplotlib --skip-lock && \
+pipenv install wandb --skip-lock && \
+pipenv lock

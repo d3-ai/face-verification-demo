@@ -1,18 +1,27 @@
+import concurrent.futures
+import ray
 from flwr.server.history import History
 from flwr.common.logger import log
-
-# from ray.tune.integration.wandb import wandb_mixin
 
 import timeit
 from logging import DEBUG, INFO
 
+import torch
+
 # typing
 from .client_manager import ClientManager
+from .client_proxy import ClientProxy
 from .server import Server
+from common.typing import Parameters, Scalar, FitRes, FitIns, Code
 from flwr.server.strategy.strategy import Strategy
-from typing import Optional
+from typing import Optional, Tuple, Union, Dict, List
 
 import wandb
+
+FitResultsAndFailures = Tuple[
+    List[Tuple[ClientProxy, FitRes]],
+    List[Union[Tuple[ClientProxy, FitRes], BaseException]],
+]
 
 class RayTuneServer(Server):
     def __init__(self, client_manager: ClientManager, strategy: Optional[Strategy] = None) -> None:
