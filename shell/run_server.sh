@@ -8,18 +8,20 @@ args+=($arg)
 done
 server_address=${args[1]}
 
-dataset="CelebA"
-target="Eyeglasses"
-model="tiny_CNN"
+dataset="CIFAR10"
+target="iid"
+model="tinyCNN"
 
 # fl configuration
-num_rounds=10
-num_clients=4
+num_rounds=5
+num_clients=2
 
 # fit configuration
 batch_size=10
 local_epochs=1
 lr=0.05
+momentum=0.9
+weight_decay=5e-4
 
 seed=1234
 
@@ -39,6 +41,9 @@ python ./local/server.py --server_address ${server_address} \
 --model ${model} \
 --local_epochs ${local_epochs} \
 --batch_size ${batch_size} \
+--lr ${lr} \
+--momentum ${momentum} \
+--weight_decay ${weight_decay} \
 --seed ${seed} \
 2>"${exp_dir}/logs/server_flower.log" &
 

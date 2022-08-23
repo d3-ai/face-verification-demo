@@ -6,8 +6,9 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-import flwr as fl
 from flwr.server.strategy import FedAvg
+from server_app.app import ServerConfig
+from server_app.app import start_server
 
 from driver import test
 from models.base_model import Net
@@ -29,6 +30,8 @@ parser.add_argument("--num_clients", type=int, required=False, default=4, help="
 parser.add_argument("--local_epochs", type=int, required=False, default=5, help="Client fit config: local epochs")
 parser.add_argument("--batch_size", type=int, required=False, default=10, help="Client fit config: batchsize")
 parser.add_argument("--lr", type=float, required=False, default=0.01, help="Client fit config: learning rate")
+parser.add_argument("--momentum", type=float, required=False, default=0.0, help="momentum")
+parser.add_argument("--weight_decay", type=float, required=False, default=0.0, help="weigh_decay")
 parser.add_argument("--seed", type=int, required=False, default=1234, help="Random seed")
 
 def set_seed(seed: int):
@@ -59,6 +62,8 @@ def main():
         config = {
             "local_epochs": args.local_epochs,
             "batch_size": args.batch_size,
+            "weight_decay": args.weight_decay,
+            "momentum": args.momentum,
             "lr": args.lr,
         }
         return config
@@ -75,28 +80,31 @@ def main():
         testset = load_dataset(name=dataset, train=False, target=target)
         testloader = DataLoader(testset, batch_size=10)
         def evaluate(
+            server_round: int,
             weights: NDArrays,
-        ) -> Optional[Tuple[float, Dict[str, Scalar]]]:
+            config: Dict[str, Scalar]) -> Optional[Tuple[float, Dict[str, Scalar]]]:
+            device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
             model.set_weights(weights)
-            loss, accuracy = test(model, testloader)
-            return loss, {"accuracy": accuracy}
+            results = test(model, testloader)
+            return results["loss"], {"accuracy": results["acc"]}
         return evaluate
 
+    server_config = ServerConfig(num_rounds=args.num_rounds)
     # Create strategy
     strategy = FedAvg(
         fraction_fit=1,
-        fraction_eval=1,
+        fraction_evaluate=1,
         min_fit_clients=args.num_clients,
-        min_eval_clients=args.num_clients,
+        min_evaluate_clients=args.num_clients,
         min_available_clients=args.num_clients,
-        eval_fn=get_eval_fn(model, args.dataset, args.target),
+        evaluate_fn=get_eval_fn(model, args.dataset, args.target),
         on_fit_config_fn=fit_config,
         on_evaluate_config_fn=eval_config,
         initial_parameters=init_parameters,
     )
 
     # Start Flower server for four rounds of federated learning
-    fl.server.start_server(args.server_address, config={"num_rounds": args.num_rounds}, strategy=strategy)
+    start_server(server_address=args.server_address, config=server_config, strategy=strategy)
 
 
 if __name__ == "__main__":

@@ -4,14 +4,17 @@
 import time
 from dataclasses import dataclass
 from logging import INFO, WARN
-from typing import Optional, Tuple
 
 from flwr.common.logger import log
 from flwr.server.history import History
 from flwr.server.strategy import FedAvg, Strategy
+from .grpc_server.grpc_server import start_grpc_server
 
+# typing
+from common import GRPC_MAX_MESSAGE_LENGTH
 from .client_manager import ClientManager, SimpleClientManager
 from .server import Server
+from typing import Optional, Tuple
 
 DEFAULT_SERVER_ADDRESS = "[::]:8080"
 
@@ -25,6 +28,104 @@ class ServerConfig:
 
     num_rounds: int = 1
     round_timeout: Optional[float] = None
+
+def start_server(  # pylint: disable=too-many-arguments
+    *,
+    server_address: str = DEFAULT_SERVER_ADDRESS,
+    server: Optional[Server] = None,
+    config: Optional[ServerConfig] = None,
+    strategy: Optional[Strategy] = None,
+    client_manager: Optional[ClientManager] = None,
+    grpc_max_message_length: int = GRPC_MAX_MESSAGE_LENGTH,
+    certificates: Optional[Tuple[bytes, bytes, bytes]] = None,
+) -> History:
+    """Start a Flower server using the gRPC transport layer.
+    Arguments
+    ---------
+        server_address: Optional[str] (default: `"[::]:8080"`). The IPv6
+            address of the server.
+        server: Optional[flwr.server.Server] (default: None). An implementation
+            of the abstract base class `flwr.server.Server`. If no instance is
+            provided, then `start_server` will create one.
+        config: ServerConfig (default: None).
+            Currently supported values are `num_rounds` (int, default: 1) and
+            `round_timeout` in seconds (float, default: None).
+        strategy: Optional[flwr.server.Strategy] (default: None). An
+            implementation of the abstract base class `flwr.server.Strategy`.
+            If no strategy is provided, then `start_server` will use
+            `flwr.server.strategy.FedAvg`.
+        client_manager: Optional[flwr.server.ClientManager] (default: None)
+            An implementation of the abstract base class `flwr.server.ClientManager`.
+            If no implementation is provided, then `start_server` will use
+            `flwr.server.client_manager.SimpleClientManager`.
+        grpc_max_message_length: int (default: 536_870_912, this equals 512MB).
+            The maximum length of gRPC messages that can be exchanged with the
+            Flower clients. The default should be sufficient for most models.
+            Users who train very large models might need to increase this
+            value. Note that the Flower clients need to be started with the
+            same value (see `flwr.client.start_client`), otherwise clients will
+            not know about the increased limit and block larger messages.
+        certificates : Tuple[bytes, bytes, bytes] (default: None)
+            Tuple containing root certificate, server certificate, and private key to
+            start a secure SSL-enabled server. The tuple is expected to have three bytes
+            elements in the following order:
+                * CA certificate.
+                * server certificate.
+                * server private key.
+    Returns
+    -------
+        hist: flwr.server.history.History. Object containing metrics from training.
+    Examples
+    --------
+    Starting an insecure server:
+    >>> start_server()
+    Starting a SSL-enabled server:
+    >>> start_server(
+    >>>     certificates=(
+    >>>         Path("/crts/root.pem").read_bytes(),
+    >>>         Path("/crts/localhost.crt").read_bytes(),
+    >>>         Path("/crts/localhost.key").read_bytes()
+    >>>     )
+    >>> )
+    """
+
+    # Initialize server and server config
+    initialized_server, initialized_config = _init_defaults(
+        server=server,
+        config=config,
+        strategy=strategy,
+        client_manager=client_manager,
+    )
+    log(
+        INFO,
+        "Starting Flower server, config: %s",
+        initialized_config,
+    )
+
+    # Start gRPC server
+    grpc_server = start_grpc_server(
+        client_manager=initialized_server.client_manager(),
+        server_address=server_address,
+        max_message_length=grpc_max_message_length,
+        certificates=certificates,
+    )
+    log(
+        INFO,
+        "Flower ECE: gRPC server running (%s rounds), SSL is %s",
+        initialized_config.num_rounds,
+        "enabled" if certificates is not None else "disabled",
+    )
+
+    # Start training
+    hist = _fl(
+        server=initialized_server,
+        config=initialized_config,
+    )
+
+    # Stop the gRPC server
+    grpc_server.stop(grace=1)
+
+    return hist
 
 def _init_defaults(
     server: Optional[Server],

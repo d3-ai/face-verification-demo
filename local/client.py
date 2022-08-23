@@ -8,6 +8,7 @@ import torch
 import flwr as fl
 from client_app.client import Client
 from client_app.base_client import FlowerClient
+from client_app.app import start_client
 
 warnings.filterwarnings("ignore")
 
@@ -35,7 +36,7 @@ def main() -> None:
         "model_name": args.model, 
     }
     client: Client = FlowerClient(cid=args.cid, config=config)
-    fl.client.start_client(args.server_address, client=client)
+    start_client(server_address=args.server_address, client=client)
 
 if __name__ == "__main__":
     main()

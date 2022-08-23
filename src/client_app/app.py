@@ -22,6 +22,7 @@ from common import (
     ndarrays_to_parameters,
     parameters_to_ndarrays,
 )
+from logging import INFO
 from flwr.common.logger import log
 from common import (
     Code,
@@ -35,7 +36,9 @@ from common import (
     GetPropertiesRes,
     NDArrays,
     Status,
+    GRPC_MAX_MESSAGE_LENGTH
 )
+from typing import Optional
 
 from .client import Client
 from .numpy_client import NumPyClient
@@ -43,6 +46,8 @@ from .numpy_client import has_evaluate as numpyclient_has_evaluate
 from .numpy_client import has_fit as numpyclient_has_fit
 from .numpy_client import has_get_parameters as numpyclient_has_get_parameters
 from .numpy_client import has_get_properties as numpyclient_has_get_properties
+from .grpc_client.connection import grpc_connection
+from .grpc_client.message_handler import handle
 
 EXCEPTION_MESSAGE_WRONG_RETURN_TYPE_FIT = """
 NumPyClient.fit did not return a tuple with 3 elements.
@@ -65,6 +70,77 @@ Example
 
 ClientLike = Union[Client, NumPyClient]
 
+def start_client(
+    *,
+    server_address: str,
+    client: Client,
+    grpc_max_message_length: int = GRPC_MAX_MESSAGE_LENGTH,
+    root_certificates: Optional[bytes] = None,
+) -> None:
+    """Start a Flower Client which connects to a gRPC server.
+    Parameters
+    ----------
+        server_address: str. The IPv6 address of the server. If the Flower
+            server runs on the same machine on port 8080, then `server_address`
+            would be `"[::]:8080"`.
+        client: flwr.client.Client. An implementation of the abstract base
+            class `flwr.client.Client`.
+        grpc_max_message_length: int (default: 536_870_912, this equals 512MB).
+            The maximum length of gRPC messages that can be exchanged with the
+            Flower server. The default should be sufficient for most models.
+            Users who train very large models might need to increase this
+            value. Note that the Flower server needs to be started with the
+            same value (see `flwr.server.start_server`), otherwise it will not
+            know about the increased limit and block larger messages.
+        root_certificates: bytes (default: None)
+            The PEM-encoded root certificates as a byte string. If provided, a secure
+            connection using the certificates will be established to a
+            SSL-enabled Flower server.
+    Returns
+    -------
+        None
+    Examples
+    --------
+    Starting a client with insecure server connection:
+    >>> start_client(
+    >>>     server_address=localhost:8080,
+    >>>     client=FlowerClient(),
+    >>> )
+    Starting a SSL-enabled client:
+    >>> from pathlib import Path
+    >>> start_client(
+    >>>     server_address=localhost:8080,
+    >>>     client=FlowerClient(),
+    >>>     root_certificates=Path("/crts/root.pem").read_bytes(),
+    >>> )
+    """
+    while True:
+        sleep_duration: int = 0
+        with grpc_connection(
+            server_address,
+            max_message_length=grpc_max_message_length,
+            root_certificates=root_certificates,
+        ) as conn:
+            receive, send = conn
+
+            while True:
+                server_message = receive()
+                client_message, sleep_duration, keep_going = handle(
+                    client, server_message
+                )
+                send(client_message)
+                if not keep_going:
+                    break
+        if sleep_duration == 0:
+            log(INFO, "Disconnect and shut down")
+            break
+        # Sleep and reconnect afterwards
+        log(
+            INFO,
+            "Disconnect, then re-establish connection after %s second(s)",
+            sleep_duration,
+        )
+        time.sleep(sleep_duration)
 
 def to_client(client_like: ClientLike) -> Client:
     """Take any Client-like object and return it as a Client."""
