@@ -9,9 +9,10 @@ done
 server_address=${args[1]}
 cid=${args[3]}
 
-dataset="CelebA"
-target="Eyeglasses"
-model="tiny_CNN"
+dataset="CIFAR10"
+target="iid"
+model="GNResNet18"
+pretrained="IMAGENET1K_V1"
 
 # fl configuration
 num_rounds=10

@@ -1,12 +1,15 @@
 import sys
 import torch
+import torch.nn as nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from models.base_model import Net
+
+from models.metric_learning import ArcFaceLoss
 
 # type annotation
 from typing import Dict
 from common.typing import Scalar
+from models.base_model import Net
 
 
 def train(
@@ -16,10 +19,11 @@ def train(
     lr: float,
     momentum: float = 0.0,
     weight_decay: float = 0.0,
+    criterion: torch.nn.modules.Module = nn.CrossEntropyLoss(),
     device: str = "cpu",
     use_tqdm: bool=False,)->None:
     net.to(device)
-    criterion = torch.nn.CrossEntropyLoss().to(device)
+
     optimizer = torch.optim.SGD(net.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
     net.train()
     if use_tqdm:

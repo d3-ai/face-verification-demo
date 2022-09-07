@@ -2,31 +2,34 @@
 
 . ./shell/path.sh
 
-if [ ! -z $CUDA_VISIBLE_DEVICES_FILE ]; then
-while read line
-do
-export CUDA_VISIBLE_DEVICES="$line"
-done < ${CUDA_VISIBLE_DEVICES_FILE}
-fi
+args=()
+for arg in $@; do
+args+=($arg)
+done
+server_address=${args[1]}
 
 dataset="CelebA"
 target="small"
 model="GNResNet18"
+pretrained="IMAGENET1K_V1"
+criterion="ArcFace"
+save_model=0
 
 # fl configuration
 num_rounds=2
-num_clients=10
-fraction_fit=1
+num_clients=3
 
 # fit configuration
-batch_size=5
+batch_size=10
 local_epochs=1
-weight_decay=0.005
-lr=$1
+lr=0.05
+weight_decay=1e-4
+scale=3.0
+margin=0.01
 
 seed=1234
 
-exp_dir="./res/simulation/${dataset}/FedAvg_${model}/"${target}"/R_${num_rounds}_B_${batch_size}_E_${local_epochs}_lr_${lr}_S_${seed}"
+exp_dir="./exp/${dataset}/FedAvg_${model}/"${target}"/R_${num_rounds}_B_${batch_size}_E_${local_epochs}_lr_${lr}_S_${seed}"
 
 if [ ! -e "${exp_dir}" ]; then
     mkdir -p "${exp_dir}/logs/"
@@ -34,25 +37,25 @@ if [ ! -e "${exp_dir}" ]; then
     mkdir -p "${exp_dir}/metrics/"
 fi
 
-ray start --head --min-worker-port 20000 --max-worker-port 29999 --num-cpus 20 --num-gpus 10
-sleep 1 
-
-python ./local/simulation.py \
+python ./face_verification/server.py --server_address ${server_address} \
 --num_rounds ${num_rounds} \
 --num_clients ${num_clients} \
---fraction_fit ${fraction_fit} \
 --dataset ${dataset} \
 --target ${target} \
 --model ${model} \
+--pretrained ${pretrained} \
 --local_epochs ${local_epochs} \
 --batch_size ${batch_size} \
 --lr ${lr} \
 --weight_decay ${weight_decay} \
+--criterion ${criterion} \
+--scale ${scale} \
+--margin ${margin} \
+--save_model ${save_model} \
 --seed ${seed} \
-2>"${exp_dir}/logs/flower.log" &
+2>"${exp_dir}/logs/server_flower.log" &
 
 # This will allow you to use CTRL+C to stop all background processes
 trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM
 # Wait for all background processes to complete
 wait
-ray stop

@@ -12,6 +12,9 @@ fi
 dataset="CelebA"
 target="small"
 model="GNResNet18"
+pretrained="IMAGENET1K_V1"
+criterion="ArcFace"
+save_model=0
 
 # fl configuration
 num_rounds=2
@@ -21,8 +24,10 @@ fraction_fit=1
 # fit configuration
 batch_size=5
 local_epochs=1
-weight_decay=0.005
-lr=$1
+scale=$1
+margin=$2
+lr=$3
+weight_decay=1e-4
 
 seed=1234
 
@@ -37,17 +42,22 @@ fi
 ray start --head --min-worker-port 20000 --max-worker-port 29999 --num-cpus 20 --num-gpus 10
 sleep 1 
 
-python ./local/simulation.py \
+python ./face_verification/federated_verification.py \
 --num_rounds ${num_rounds} \
 --num_clients ${num_clients} \
 --fraction_fit ${fraction_fit} \
 --dataset ${dataset} \
 --target ${target} \
 --model ${model} \
+--pretrained ${pretrained} \
 --local_epochs ${local_epochs} \
 --batch_size ${batch_size} \
+--criterion ${criterion} \
+--scale ${scale} \
+--margin ${margin} \
 --lr ${lr} \
 --weight_decay ${weight_decay} \
+--save_model ${save_model} \
 --seed ${seed} \
 2>"${exp_dir}/logs/flower.log" &
 

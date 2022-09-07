@@ -25,7 +25,7 @@ def get_metadata() -> Tuple[List[str], List[str]]:
     attributes: List[str] = f_attributes.read().split('\n')
     return identities, attributes
 
-def get_celeblities_and_images(identities: List[str]) -> Dict[str, List[str]]:
+def get_celebrities_and_images(identities: List[str]) -> Dict[str, List[str]]:
     """
     good_celebs: Dict[str, List[str]]
         key: celeb_id, value: image list
@@ -60,7 +60,7 @@ def _get_celebrites_by_image(celebrities: Dict[str, List[str]]) -> Dict[str, str
             good_images[img] = c
     return good_images
 
-def get_celeblities_and_target(celebrities: Dict[str, List[str]], attributes: List[str], attribute_name=TARGET_NAME)->Dict[str, List[int]]:
+def get_celebrities_and_target(celebrities: Dict[str, List[str]], attributes: List[str], attribute_name=TARGET_NAME)->Dict[str, List[int]]:
     col_name: str = attributes[1]
     col_idx: int = col_name.split().index(attribute_name)
     celeb_attributes: Dict[str, List[int]] = {}
@@ -127,17 +127,61 @@ def download():
     for (file_id, md5, filename) in file_list:
         download_file_from_google_drive(file_id, "./data/celeba", filename, md5)
 
+def verification_partition(train: bool =True, target: str = 'large'):
+    # download()
+    with open('./data/celeba/identity_CelebA.txt', 'r') as f:
+        identities: List[str] = f.read().split('\n')
+    
+    celebrities, _ = get_celebrities_and_images(identities)
+    print(len(celebrities))
+
+    celeb_keys = [c for c in celebrities]
+    if target == 'small':
+        celeb_keys = celeb_keys[:10]
+    elif target == 'medium':
+        celeb_keys = celeb_keys[:100]
+    elif target == 'large':
+        celeb_keys = celeb_keys[:1000]
+    else:
+        raise NotImplementedError(f"{target} is not supported")
+    
+    if train:
+        data = {c: {'x': celebrities[c][:24], 'y': [i for _ in range(24)]} for i, c in enumerate(celeb_keys)}
+        num_samples = [len(data[c]['x']) for c in celeb_keys]
+    else:
+        data = {c: {'x': celebrities[c][24:], 'y': [i for _ in range(6)]} for i, c in enumerate(celeb_keys)}
+        num_samples = [len(data[c]['x']) for c in celeb_keys]
+    all_data = {}
+    all_data['users'] = celeb_keys
+    all_data['num_samples'] = num_samples
+    all_data['user_data'] = data
+
+    save_dir: str = os.path.join('./data/celeba/identities/',target)
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    
+    if train:
+        file_path: str = Path(save_dir) / 'train_data.json'
+    else:
+        file_path: str = Path(save_dir) / 'test_data.json'
+        
+    print('writing {}'.format(file_path))
+    with open(file_path, 'w') as outfile:
+        json.dump(all_data, outfile)
+    
+
 def main():
     download()
     identities, attributes = get_metadata()
-    train_celebrities, test_celebrities = get_celeblities_and_images(identities)
-    train_targets = get_celeblities_and_target(train_celebrities, attributes)
+    train_celebrities, test_celebrities = get_celebrities_and_images(identities)
+    train_targets = get_celebrities_and_target(train_celebrities, attributes)
     train_json_data = build_json_format(train_celebrities, train_targets)
-    test_targets = get_celeblities_and_target(test_celebrities, attributes)
+    test_targets = get_celebrities_and_target(test_celebrities, attributes)
     test_json_data = build_json_format(test_celebrities, test_targets)
 
     write_json(train_json_data, train=True)
     write_json(test_json_data, train=False)
 
 if __name__ == "__main__":
-    main()
+    verification_partition(True)
+    # main()
