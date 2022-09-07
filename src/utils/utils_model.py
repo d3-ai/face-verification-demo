@@ -2,6 +2,7 @@ import torch.nn as nn
 
 from models.base_model import Net
 from models.efficientnet import EfficientNetB0
+from models.metric_learning import get_arcface_resnet18
 from models.resnet import resnet18 
 from models.tinycnn import tinyCNN
 
@@ -16,5 +17,13 @@ def load_model(name: str, input_spec: Tuple[int, int, int], out_dims: int = 10, 
         return resnet18(input_spec=input_spec, num_classes=out_dims, norm_layer=lambda x: nn.GroupNorm(2,x))
     elif name == "EfficientNetB0":
         return EfficientNetB0(pretrained=pretrained, out_dims=out_dims)
+    else:
+        raise NotImplementedError(f"model {name} is not implemented.")
+
+def load_arcface_model(name: str, input_spec: Tuple[int, int, int], out_dims: int = 10, pretrained: str = None)->Net:
+    if name == "ResNet18":
+        return get_arcface_resnet18(input_spec=input_spec, num_classes=out_dims, pretrained=pretrained)
+    elif name == "GNResNet18":
+        return get_arcface_resnet18(input_spec=input_spec, num_classes=out_dims, pretrained=pretrained, norm_layer=lambda x: nn.GroupNorm(2,x))
     else:
         raise NotImplementedError(f"model {name} is not implemented.")

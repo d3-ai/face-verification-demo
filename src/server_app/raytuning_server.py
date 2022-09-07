@@ -69,16 +69,16 @@ class RayTuneServer(Server):
                 wandb.log({"test_loss": loss_cen, "test_acc": metrics_cen["accuracy"], "Aggregation round": current_round})
 
         # Evaluate model on a sample of available clients
-        res_fed = self.evaluate_round(server_round=-1, timeout=timeout)
-        if res_fed:
-            loss_fed, evaluate_metrics_fed, _ = res_fed
-            if loss_fed:
-                history.add_loss_distributed(
-                    server_round=current_round, loss=loss_fed
-                )
-                history.add_metrics_distributed(
-                    server_round=current_round, metrics=evaluate_metrics_fed
-                )
+        # res_fed = self.evaluate_round(server_round=-1, timeout=timeout)
+        # if res_fed:
+        #     loss_fed, evaluate_metrics_fed, _ = res_fed
+        #     if loss_fed:
+        #         history.add_loss_distributed(
+        #             server_round=current_round, loss=loss_fed
+        #         )
+        #         history.add_metrics_distributed(
+        #             server_round=current_round, metrics=evaluate_metrics_fed
+        #         )
 
         # Bookkeeping
         end_time = timeit.default_timer()

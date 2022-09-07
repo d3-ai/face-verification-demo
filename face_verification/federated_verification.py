@@ -13,10 +13,10 @@ from server_app.app import ServerConfig
 from driver import test
 from models.base_model import Net
 from client_app.client import Client
-from client_app.ray_client import FlowerRayClient
+from client_app.face_client import FlowerFaceRayClient
 from server_app.client_manager import SimpleClientManager
 from server_app.raytuning_server import RayTuneServer
-from utils.utils_model import load_model
+from utils.utils_model import load_arcface_model
 from utils.utils_dataset import configure_dataset, load_centralized_dataset
 from common import ndarrays_to_parameters, Parameters, Scalar, NDArrays
 from simulation_app.app import start_simulation
@@ -26,17 +26,22 @@ from utils.utils_wandb import custom_wandb_init
 
 warnings.filterwarnings("ignore")
 
-parser = argparse.ArgumentParser("Flower simulation")
+parser = argparse.ArgumentParser("Federated face verification simulation")
 parser.add_argument("--dataset", type=str, required=True, choices=["CIFAR10", "CelebA"], help="FL config: dataset name")
 parser.add_argument("--target", type=str, required=True, help="FL config: target partitions for common dataset target attributes for celeba")
-parser.add_argument("--model", type=str, required=True, choices=["tinyCNN", "ResNet18", "GNResNet18"], help="FL config: model name")
+parser.add_argument("--model", type=str, required=True, choices=["ResNet18", "GNResNet18"], help="FL config: model name")
+parser.add_argument("--pretrained", type=str, required=False, choices=["IMAGENET1K_V1", None], default=None, help="pretraing recipe")
 parser.add_argument("--num_rounds", type=int, required=False, default=5, help="FL config: aggregation rounds")
 parser.add_argument("--num_clients", type=int, required=False, default=4, help="FL config: number of clients")
 parser.add_argument("--fraction_fit", type=float, required=False, default=1, help="FL config: client selection ratio")
 parser.add_argument("--local_epochs", type=int, required=False, default=5, help="Client fit config: local epochs")
 parser.add_argument("--batch_size", type=int, required=False, default=10, help="Client fit config: batchsize")
+parser.add_argument("--criterion", type=str, required=False, default="CrossEntropy", choices=["CrossEntropy", "ArcFace"], help="Criterion of classification performance")
 parser.add_argument("--lr", type=float, required=False, default=0.01, help="Client fit config: learning rate")
 parser.add_argument("--weight_decay", type=float, required=False, default=0.0, help="Client fit config: weigh_decay")
+parser.add_argument("--scale", type=float, required=False, default=0.0, help="scale for arcface loss")
+parser.add_argument("--margin", type=float, required=False, default=0.0, help="margin for arcface loss")
+parser.add_argument("--save_model", type=int, required=False, default=0, help="flag for model saving")
 parser.add_argument("--seed", type=int, required=False, default=1234, help="Random seed")
 
 def set_seed(seed: int):
@@ -52,13 +57,14 @@ def main():
 
     dataset_config = configure_dataset(dataset_name=args.dataset, target=args.target)
 
-    net: Net = load_model(name=args.model, input_spec=dataset_config["input_spec"], out_dims=dataset_config["out_dims"])
+    net: Net = load_arcface_model(name=args.model, input_spec=dataset_config["input_spec"], out_dims=dataset_config["out_dims"], pretrained=args.pretrained)
     init_parameters: Parameters = ndarrays_to_parameters(net.get_weights())
 
     client_config = {
         "dataset_name": args.dataset,
         "target_name": args.target,
-        "model_name": args.model
+        "model_name": args.model,
+        "pretrained": args.pretrained,
     }
     server_config = ServerConfig(num_rounds=args.num_rounds)
 
@@ -68,6 +74,9 @@ def main():
             "batch_size": args.batch_size,
             "lr": args.lr,
             "weight_decay": args.weight_decay,
+            "criterion_name": args.criterion,
+            "scale": args.scale,
+            "margin": args.margin
         }
         return config
     
@@ -90,7 +99,7 @@ def main():
         return evaluate
 
     def client_fn(cid: str)->Client:
-        return FlowerRayClient(cid, client_config)
+        return FlowerFaceRayClient(cid, client_config)
 
     strategy = FedAvg(
         fraction_fit=args.fraction_fit,
@@ -122,7 +131,7 @@ def main():
     }
     custom_wandb_init(
         config=params_config,
-        project=f"hoge_baselines",
+        project=f"hoge_verifications",
         strategy="FedAvg"
     )
     hist = start_simulation(

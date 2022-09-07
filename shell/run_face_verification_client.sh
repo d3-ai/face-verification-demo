@@ -9,15 +9,14 @@ done
 server_address=${args[1]}
 cid=${args[3]}
 
-dataset="CIFAR10"
-target="iid"
+dataset="CelebA"
+target="small"
 model="GNResNet18"
 pretrained="IMAGENET1K_V1"
 
-
 # fl configuration
-num_rounds=10
-num_clients=5
+num_rounds=2
+num_clients=3
 
 # fit configuration
 batch_size=10
@@ -35,11 +34,12 @@ if [ ! -e "${exp_dir}" ]; then
 fi
 
 
-python ./local/client.py --server_address ${server_address} \
+python ./face_verification/client.py --server_address ${server_address} \
 --cid ${cid} \
 --dataset ${dataset} \
 --target ${target} \
 --model ${model} \
+--pretrained ${pretrained} \
 --seed ${seed} \
 2>"${exp_dir}/logs/client${cid}_flower.log" &
 

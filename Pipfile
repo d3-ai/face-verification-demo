@@ -13,6 +13,9 @@ pandas = "*"
 optuna = "*"
 matplotlib = "*"
 wandb = "*"
+scikit-image = "*"
+opencv-python = "==4.6.0.66"
+facenet-pytorch = "*"
 
 [dev-packages]
 

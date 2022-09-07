@@ -10,7 +10,12 @@ server_address=${args[1]}
 
 dataset="CIFAR10"
 target="iid"
-model="tinyCNN"
+model="GNResNet18"
+pretrained="IMAGENET1K_V1"
+
+# fl configuration
+num_rounds=2
+num_clients=3
 
 # fl configuration
 num_rounds=5

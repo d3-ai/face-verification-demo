@@ -2,10 +2,14 @@
 /.devcontainer/.gpu_uuid
 /data/*/raw
 /res
+/exp
+/wandb
 /local/test.py
-/local/tuning_test.py
 Pipfile.lock
 setup_pi.sh
 *.tar
+*.tgz
+*.jpg
+*.png
 *__pycache__*
 *DS_Store*

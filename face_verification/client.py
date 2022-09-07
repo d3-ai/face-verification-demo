@@ -7,8 +7,7 @@ import torch
 
 import flwr as fl
 from client_app.client import Client
-from client_app.base_client import FlowerClient
-from client_app.app import start_client
+from client_app.face_client import FlowerFaceClient
 
 warnings.filterwarnings("ignore")
 
@@ -18,6 +17,7 @@ parser.add_argument("--cid", type=str, required=True, help="Client id for data p
 parser.add_argument("--dataset", type=str, required=False, choices=["CIFAR10", "CelebA", "usbcam"], default="CIFAR10", help="dataset name for FL training")
 parser.add_argument("--target", type=str, required=True, help="FL config: target partitions for common dataset target attributes for celeba")
 parser.add_argument("--model", type=str, required=False, choices=["tinyCNN", "ResNet18", "GNResNet18"], default="tinyCNN", help="model name for FL training")
+parser.add_argument("--pretrained", type=str, required=False, choices=["IMAGENET1K_V1", None], default=None, help="pretraing recipe")
 parser.add_argument("--seed", type=int, required=False, default=1234, help="Random seed")
 
 def set_seed(seed: int):
@@ -33,10 +33,11 @@ def main() -> None:
     config = {
         "dataset_name": args.dataset,
         "target_name": args.target,
-        "model_name": args.model, 
+        "model_name": args.model,
+        "pretrained": args.pretrained
     }
-    client: Client = FlowerClient(cid=args.cid, config=config)
-    start_client(server_address=args.server_address, client=client)
+    client: Client = FlowerFaceClient(cid=args.cid, config=config)
+    fl.client.start_client(server_address=args.server_address, client=client)
 
 if __name__ == "__main__":
     main()

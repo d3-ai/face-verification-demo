@@ -10,8 +10,8 @@ from flwr.common.logger import log
 from driver import train, test
 from models.base_model import Net
 from utils.utils_dataset import (
+    load_federated_dataset,
     configure_dataset,
-    load_dataset,
     split_validation
 )
 from utils.utils_model import load_model
@@ -43,13 +43,13 @@ class FlowerClient(Client):
         self.dataset = config["dataset_name"]
         self.target = config["target_name"]
         validation_ratio=0.8
-        dataset = load_dataset(name=self.dataset, id=self.cid, train=True, target=self.target)
+        dataset = load_federated_dataset(dataset_name=self.dataset, id=self.cid, train=True, target=self.target)
         self.trainset, self.valset = split_validation(dataset, split_ratio=validation_ratio)
-        self.testset = load_dataset(name=self.dataset, id=self.cid, train=False, target=self.target)
+        self.testset = load_federated_dataset(dataset_name=self.dataset, id=self.cid, train=False, target=self.target)
 
         # model configuration
         self.model = config["model_name"]
-        dataset_config = configure_dataset(self.dataset)
+        dataset_config = configure_dataset(self.dataset, target=self.target)
         self.net: Net = load_model(name=self.model, input_spec=dataset_config['input_spec'], out_dims=dataset_config['out_dims'])
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     
@@ -100,9 +100,9 @@ class FlowerNumPyClient(NumPyClient):
         self.dataset = config["dataset_name"]
         self.target = config["target_name"]
         validation_ratio=0.8
-        dataset = load_dataset(name=self.dataset, id=self.cid, train=True, target=self.target)
+        dataset = load_federated_dataset(dataset_name=self.dataset, id=self.cid, train=True, target=self.target)
         self.trainset, self.valset = split_validation(dataset, split_ratio=validation_ratio)
-        self.testset = load_dataset(name=self.dataset, id=self.cid, train=False, target=self.target)
+        self.testset = load_federated_dataset(dataset_name=self.dataset, id=self.cid, train=False, target=self.target)
 
         # model configuration
         self.model = config["model_name"]

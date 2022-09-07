@@ -14,6 +14,6 @@ def custom_wandb_init(config: Dict[str, Any], project: str, strategy: str):
     wandb.init(
         project=project,
         config=config,
-        group=f"Centralized_{config['model_name']}",
-        name=f"centralized_{trial_id}",
+        group=f"{strategy}_{config['model_name']}",
+        name=f"{strategy}_{trial_id}",
     )
