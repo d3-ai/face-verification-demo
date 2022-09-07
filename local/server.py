@@ -7,9 +7,11 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-import flwr as fl
 from flwr.server.strategy import FedAvg
 from server_app.app import ServerConfig
+
+from server_app.app import start_server
+
 
 from driver import test
 from models.base_model import Net
@@ -32,7 +34,8 @@ parser.add_argument("--num_clients", type=int, required=False, default=4, help="
 parser.add_argument("--local_epochs", type=int, required=False, default=5, help="Client fit config: local epochs")
 parser.add_argument("--batch_size", type=int, required=False, default=10, help="Client fit config: batchsize")
 parser.add_argument("--lr", type=float, required=False, default=0.01, help="Client fit config: learning rate")
-parser.add_argument("--weight_decay", type=float, required=False, default=0.0, help="Client fit config: weigh_decay")
+parser.add_argument("--momentum", type=float, required=False, default=0.0, help="momentum")
+parser.add_argument("--weight_decay", type=float, required=False, default=0.0, help="weigh_decay")
 parser.add_argument("--seed", type=int, required=False, default=1234, help="Random seed")
 
 def set_seed(seed: int):
@@ -59,6 +62,8 @@ def main():
         config = {
             "local_epochs": args.local_epochs,
             "batch_size": args.batch_size,
+            "weight_decay": args.weight_decay,
+            "momentum": args.momentum,
             "lr": args.lr,
             "weight_decay": args.weight_decay,
         }
@@ -72,6 +77,7 @@ def main():
         }
         return config
 
+
     def get_eval_fn(model: Net, dataset: str, target: str)-> Callable:
         testset = load_centralized_dataset(dataset_name=dataset, train=False, target=target)
         testloader = DataLoader(testset, batch_size=1000)
@@ -84,6 +90,7 @@ def main():
             return results['loss'], {"accuracy": results['acc']}
         return evaluate
 
+    server_config = ServerConfig(num_rounds=args.num_rounds)
     # Create strategy
     strategy = FedAvg(
         fraction_fit=1,
@@ -98,7 +105,7 @@ def main():
     )
 
     # Start Flower server for four rounds of federated learning
-    fl.server.start_server(server_address=args.server_address, config=server_config, strategy=strategy)
+    start_server(server_address=args.server_address, config=server_config, strategy=strategy)
 
 
 if __name__ == "__main__":

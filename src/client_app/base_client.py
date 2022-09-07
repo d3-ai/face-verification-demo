@@ -1,7 +1,6 @@
 import os
 import timeit
 import warnings
-import ray
 import torch
 from torch.utils.data import DataLoader
 
@@ -64,6 +63,7 @@ class FlowerClient(Client):
         epochs: int = int(ins.config["local_epochs"])
         batch_size: int = int(ins.config["batch_size"])
         lr: float = float(ins.config["lr"])
+        print(ins.config)
         weight_decay: float = float(ins.config["weight_decay"])
 
         # set parameters
@@ -73,7 +73,7 @@ class FlowerClient(Client):
         trainloader = DataLoader(self.trainset, batch_size=batch_size, num_workers=2, pin_memory=True, shuffle=True, drop_last=True)
         valloader = DataLoader(self.valset, batch_size=100,shuffle=False, drop_last=False)
 
-        train(self.net, trainloader=trainloader, epochs=epochs, lr=lr, weight_decay=weight_decay, device=self.device)
+        train(self.net, trainloader=trainloader, epochs=epochs, lr=lr, weight_decay=weight_decay, device=self.device, use_tqdm=True)
         results = test(self.net, valloader, device=self.device)
         parameters_prime: Parameters = ndarrays_to_parameters(self.net.get_weights())
         log(INFO, "fit() on client cid=%s: val loss %s / val acc %s", self.cid, results["loss"], results["acc"])

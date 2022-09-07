@@ -14,6 +14,7 @@ target="iid"
 model="GNResNet18"
 pretrained="IMAGENET1K_V1"
 
+
 # fl configuration
 num_rounds=10
 num_clients=5
