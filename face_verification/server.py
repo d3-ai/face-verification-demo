@@ -7,9 +7,8 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-import flwr as fl
 from flwr.server.strategy import FedAvg
-from server_app.app import ServerConfig
+from server_app.app import ServerConfig, start_server
 
 from driver import test
 from models.base_model import Net
@@ -106,7 +105,7 @@ def main():
     )
 
     # Start Flower server for four rounds of federated learning
-    fl.server.start_server(server_address=args.server_address, config=server_config, strategy=strategy)
+    start_server(server_address=args.server_address, config=server_config, strategy=strategy)
 
 
 if __name__ == "__main__":

@@ -5,7 +5,6 @@ import random
 import numpy as np
 import torch
 
-import flwr as fl
 from client_app.client import Client
 from client_app.base_client import FlowerClient
 from client_app.app import start_client

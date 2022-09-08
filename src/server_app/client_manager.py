@@ -96,8 +96,9 @@ class SimpleClientManager(ClientManager):
         if client.cid in self.clients:
             return False
 
-        self.clients[client.cid] = client
+        # self.clients[client.cid] = client
         with self._cv:
+            self.clients[client.cid] = client
             self._cv.notify_all()
 
         return True
@@ -107,9 +108,10 @@ class SimpleClientManager(ClientManager):
         This method is idempotent.
         """
         if client.cid in self.clients:
-            del self.clients[client.cid]
+            # del self.clients[client.cid]
 
             with self._cv:
+                del self.clients[client.cid]
                 self._cv.notify_all()
 
     def all(self) -> Dict[str, ClientProxy]:

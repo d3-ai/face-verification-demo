@@ -8,9 +8,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from flwr.server.strategy import FedAvg
-from server_app.app import ServerConfig
-
-from server_app.app import start_server
+from server_app.app import ServerConfig, start_server
 
 
 from driver import test

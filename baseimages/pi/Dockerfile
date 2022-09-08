@@ -9,7 +9,9 @@ ENV LC_ALL en_US.UTF-8
 
 RUN apt-get clean && apt-get update && apt-get install -y iputils-ping \
 net-tools \
-dnsutils
+dnsutils \
+tmux \
+vim
 
 LABEL maintainer="Y. Yamasaki <yamasaki@hal.ipc.i.u-tokyo.ac.jp>"
 
@@ -36,9 +38,16 @@ libffi-dev \
 liblzma-dev \
 python3-distutils
 
+ARG USER
+ENV USER=${USER}
+RUN useradd -m ${USER}
+USER ${USER}
+ENV HOME=/home/${USER}
+WORKDIR ${HOME}/project
+
 RUN git clone https://github.com/pyenv/pyenv.git ~/.pyenv
 
-ENV PYENV_ROOT /root/.pyenv
+ENV PYENV_ROOT ${HOME}/.pyenv
 ENV PATH $PYENV_ROOT/bin:$PATH
 ENV PATH $PYENV_ROOT/shims:$PATH
 
@@ -47,7 +56,12 @@ RUN pip install pipenv
 
 WORKDIR /project
 RUN pipenv install --python 3.8.0 
-RUN pipenv install https://download.pytorch.org/whl/cpu/torch-1.8.0-cp38-cp38-manylinux2014_aarch64.whl && \
-pipenv install https://download.pytorch.org/whl/cpu/torchvision-0.9.1-cp38-cp38-manylinux2014_aarch64.whl && \
-pipenv install flwr && \
-pipenv install tqdm
+RUN pipenv install https://download.pytorch.org/whl/cpu/torch-1.8.0-cp38-cp38-manylinux2014_aarch64.whl --skip-lock && \
+pipenv install https://download.pytorch.org/whl/cpu/torchvision-0.9.1-cp38-cp38-manylinux2014_aarch64.whl --skip-lock && \
+pipenv install flwr==1.0.0 --skip-lock && \
+pipenv install tqdm --skip-lock && \
+pipenv install matplotlib --skip-lock && \
+pipenv install scikit-image && \
+pipenv install opencv-python==4.6.0.66 --skip-lock && \
+pipenv install facenet-pytorch && \
+pipenv lock

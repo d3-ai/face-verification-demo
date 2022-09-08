@@ -5,9 +5,9 @@ import random
 import numpy as np
 import torch
 
-import flwr as fl
 from client_app.client import Client
 from client_app.face_client import FlowerFaceClient
+from client_app.app import start_client
 
 warnings.filterwarnings("ignore")
 
@@ -37,7 +37,7 @@ def main() -> None:
         "pretrained": args.pretrained
     }
     client: Client = FlowerFaceClient(cid=args.cid, config=config)
-    fl.client.start_client(server_address=args.server_address, client=client)
+    start_client(server_address=args.server_address, client=client)
 
 if __name__ == "__main__":
     main()
