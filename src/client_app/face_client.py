@@ -6,7 +6,7 @@ from logging import INFO
 from flwr.common.logger import log
 
 from models.base_model import Net
-from models.metric_learning import ArcFaceLoss
+from models.metric_learning import ArcFaceLoss, CosineContrastiveLoss
 from utils.utils_model import load_arcface_model
 from utils.utils_dataset import configure_dataset, load_federated_dataset
 from common import (
@@ -69,6 +69,8 @@ class FlowerFaceClient(Client):
             assert ins.config['scale'] is not None
             assert ins.config['margin'] is not None
             criterion = ArcFaceLoss(s = float(ins.config['scale']), m = float(ins.config['margin']))
+        elif criterion_name == "CCL":
+            criterion = CosineContrastiveLoss()
 
         train(self.net, trainloader=trainloader, epochs=epochs, lr=lr, weight_decay=weight_decay, criterion=criterion, device=self.device)
         parameters_prime: Parameters = ndarrays_to_parameters(self.net.get_weights())
@@ -95,12 +97,10 @@ class FlowerFaceRayClient(Client):
         # dataset configuration
         self.dataset = config["dataset_name"]
         self.target = config["target_name"]
-        self.pretrained = config["pretrained"]
 
         # model configuration
         self.model = config["model_name"]
-        dataset_config = configure_dataset(self.dataset, target=self.target)
-        self.net: Net = load_arcface_model(name=self.model, input_spec=dataset_config['input_spec'], out_dims=dataset_config['out_dims'], pretrained=self.pretrained)
+        self.net: Net = load_arcface_model(name=self.model, input_spec=config['input_spec'], out_dims=config['out_dims'], pretrained=config["pretrained"])
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     
     def get_parameters(self, ins: GetParametersIns) -> GetParametersRes:
@@ -129,6 +129,8 @@ class FlowerFaceRayClient(Client):
             assert ins.config['scale'] is not None
             assert ins.config['margin'] is not None
             criterion = ArcFaceLoss(s = float(ins.config['scale']), m = float(ins.config['margin']))
+        elif criterion_name == "CCL":
+            criterion = CosineContrastiveLoss()
 
         train(self.net, trainloader=trainloader, epochs=epochs, lr=lr, weight_decay=weight_decay, criterion=criterion, device=self.device)
         parameters_prime: Parameters = ndarrays_to_parameters(self.net.get_weights())

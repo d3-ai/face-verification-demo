@@ -4,20 +4,20 @@
 
 # dataset config
 dataset="CelebA"
-target="small"
+target="large"
 
 # model config
 model="ResNet18"
 pretrained="IMAGENET1K_V1"
 criterion="ArcFace"
-save_model=0
+save_model=1
 seed=1234
 
 # training configuration
-max_epochs=100
-batch_size=4
-scale=$1
-margin=$2
+max_epochs=300
+batch_size=$1
+scale=$2
+margin=0.1
 lr=$3
 momentum=0.9
 weight_decay=1e-4

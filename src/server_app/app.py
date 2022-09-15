@@ -117,7 +117,7 @@ def start_server(  # pylint: disable=too-many-arguments
     )
 
     # Start training
-    hist = _fl(
+    hist, params = _fl(
         server=initialized_server,
         config=initialized_config,
     )
@@ -125,7 +125,7 @@ def start_server(  # pylint: disable=too-many-arguments
     # Stop the gRPC server
     grpc_server.stop(grace=1)
 
-    return hist
+    return hist, params
 
 def _init_defaults(
     server: Optional[Server],
@@ -155,7 +155,7 @@ def _fl(
     config: ServerConfig,
 ) -> History:
     # Fit model
-    hist = server.fit(num_rounds=config.num_rounds, timeout=config.round_timeout)
+    hist, params = server.fit(num_rounds=config.num_rounds, timeout=config.round_timeout)
     log(INFO, "app_fit: losses_distributed %s", str(hist.losses_distributed))
     log(INFO, "app_fit: metrics_distributed %s", str(hist.metrics_distributed))
     log(INFO, "app_fit: losses_centralized %s", str(hist.losses_centralized))
@@ -164,7 +164,7 @@ def _fl(
     # Graceful shutdown
     server.disconnect_all_clients(timeout=config.round_timeout)
 
-    return hist
+    return hist, params
 
 
 def run_server() -> None:

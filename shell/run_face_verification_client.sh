@@ -12,7 +12,7 @@ cid=${args[3]}
 dataset="CelebA"
 target="small"
 model="GNResNet18"
-pretrained="IMAGENET1K_V1"
+pretrained="None"
 
 # fl configuration
 num_rounds=2

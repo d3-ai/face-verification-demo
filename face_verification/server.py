@@ -20,12 +20,12 @@ from common import Parameters, Scalar, NDArrays
 from typing import Dict, Optional, Tuple, Callable
 warnings.filterwarnings("ignore")
 
-parser = argparse.ArgumentParser("Flower Server")
+parser = argparse.ArgumentParser("Flower face verification server")
 parser.add_argument("--server_address", type=str, required=True, default="0.0.0.0:8080", help="server ipaddress:post")
 parser.add_argument("--dataset", type=str, required=True, choices=["CIFAR10", "CelebA"], help="FL config: dataset name")
 parser.add_argument("--target", type=str, required=True, help="FL config: target partitions for common dataset target attributes for celeba")
 parser.add_argument("--model", type=str, required=True, choices=["tinyCNN", "GNResNet18"], help="FL config: model name")
-parser.add_argument("--pretrained", type=str, required=False, choices=["IMAGENET1K_V1", None], default=None, help="pretraing recipe")
+parser.add_argument("--pretrained", type=str, required=False, choices=["IMAGENET1K_V1", "CelebA", "None"], default="None", help="pretraing recipe")
 parser.add_argument("--num_rounds", type=int, required=False, default=5, help="FL config: aggregation rounds")
 parser.add_argument("--num_clients", type=int, required=False, default=4, help="FL config: number of clients")
 parser.add_argument("--local_epochs", type=int, required=False, default=5, help="Client fit config: local epochs")
