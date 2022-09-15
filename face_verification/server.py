@@ -7,7 +7,8 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-from flwr.server.strategy import FedAvg
+from server_app.strategy.fedavg import FedAvg
+from server_app.strategy.fedaws import FedAwS
 from server_app.app import ServerConfig, start_server
 
 from driver import test
@@ -16,7 +17,7 @@ from utils.utils_dataset import configure_dataset, load_centralized_dataset
 from utils.utils_model import load_arcface_model
 from common import ndarrays_to_parameters
 
-from common import Parameters, Scalar, NDArrays
+from common import Parameters, Scalar, NDArrays, NDArray
 from typing import Dict, Optional, Tuple, Callable
 warnings.filterwarnings("ignore")
 
@@ -28,13 +29,11 @@ parser.add_argument("--model", type=str, required=True, choices=["tinyCNN", "GNR
 parser.add_argument("--pretrained", type=str, required=False, choices=["IMAGENET1K_V1", "CelebA", "None"], default="None", help="pretraing recipe")
 parser.add_argument("--num_rounds", type=int, required=False, default=5, help="FL config: aggregation rounds")
 parser.add_argument("--num_clients", type=int, required=False, default=4, help="FL config: number of clients")
+parser.add_argument("--strategy", type=str, required=False, choices=["FedAvg", "FedAwS"], default="FedAvg", help="FL config: number of clients")
 parser.add_argument("--local_epochs", type=int, required=False, default=5, help="Client fit config: local epochs")
 parser.add_argument("--batch_size", type=int, required=False, default=10, help="Client fit config: batchsize")
 parser.add_argument("--lr", type=float, required=False, default=0.01, help="Client fit config: learning rate")
 parser.add_argument("--weight_decay", type=float, required=False, default=0.0, help="Client fit config: weigh_decay")
-parser.add_argument("--criterion", type=str, required=False, default="CrossEntropy", choices=["CrossEntropy", "ArcFace"], help="Criterion of classification performance")
-parser.add_argument("--scale", type=float, required=False, default=0.0, help="scale for arcface loss")
-parser.add_argument("--margin", type=float, required=False, default=0.0, help="margin for arcface loss")
 parser.add_argument("--save_model", type=int, required=False, default=0, help="flag for model saving")
 parser.add_argument("--seed", type=int, required=False, default=1234, help="Random seed")
 
@@ -58,17 +57,6 @@ def main():
     model: Net = load_arcface_model(name=args.model, input_spec=dataset_config["input_spec"], out_dims=dataset_config["out_dims"], pretrained=args.pretrained)
     init_parameters: Parameters = ndarrays_to_parameters(model.get_weights())
 
-    def fit_config(server_rnd: int)-> Dict[str, Scalar]:
-        config = {
-            "local_epochs": args.local_epochs,
-            "batch_size": args.batch_size,
-            "lr": args.lr,
-            "weight_decay": args.weight_decay,
-            "criterion_name": args.criterion,
-            "scale": args.scale,
-            "margin": args.margin
-        }
-        return config
     
     server_config = ServerConfig(num_rounds=args.num_rounds)
     
@@ -92,20 +80,64 @@ def main():
         return evaluate
 
     # Create strategy
-    strategy = FedAvg(
-        fraction_fit=1,
-        fraction_evaluate=1,
-        min_fit_clients=args.num_clients,
-        min_evaluate_clients=args.num_clients,
-        min_available_clients=args.num_clients,
-        evaluate_fn=get_eval_fn(model, args.dataset, args.target),
-        on_fit_config_fn=fit_config,
-        on_evaluate_config_fn=eval_config,
-        initial_parameters=init_parameters,
-    )
+    if args.strategy == "FedAvg":
+        criterion = "ArcFace"
+        scale = 32.0
+        margin = 0.1
+        def fit_config(server_rnd: int)-> Dict[str, Scalar]:
+            config = {
+                "local_epochs": args.local_epochs,
+                "batch_size": args.batch_size,
+                "lr": args.lr,
+                "weight_decay": args.weight_decay,
+                "criterion_name": criterion,
+                "scale": scale,
+                "margin": margin
+            }
+            return config
+        strategy = FedAvg(
+            fraction_fit=1,
+            fraction_evaluate=1,
+            min_fit_clients=args.num_clients,
+            min_evaluate_clients=args.num_clients,
+            min_available_clients=args.num_clients,
+            evaluate_fn=get_eval_fn(model, args.dataset, args.target),
+            on_fit_config_fn=fit_config,
+            on_evaluate_config_fn=eval_config,
+            initial_parameters=init_parameters,
+        )
+    elif args.strategy == "FedAwS":
+        criterion = "CCL"
+        def fit_config(server_rnd: int)-> Dict[str, Scalar]:
+            config = {
+                "local_epochs": args.local_epochs,
+                "batch_size": args.batch_size,
+                "lr": args.lr,
+                "weight_decay": args.weight_decay,
+                "criterion_name": criterion,
+            }
+            return config
+
+        init_parameters: Parameters = ndarrays_to_parameters(model.get_weights())
+        init_embeddings: NDArray = model.get_weights()[-1]
+        strategy = FedAwS(
+            fraction_fit=1,
+            fraction_evaluate=1,
+            min_fit_clients=args.num_clients,
+            min_evaluate_clients=args.num_clients,
+            min_available_clients=args.num_clients,
+            evaluate_fn=get_eval_fn(model, args.dataset, args.target),
+            on_fit_config_fn=fit_config,
+            on_evaluate_config_fn=eval_config,
+            initial_parameters=init_parameters,
+            initial_embeddings=init_embeddings,
+            nu=0.9,
+            eta=0.01,
+            lam=10
+        )
 
     # Start Flower server for four rounds of federated learning
-    start_server(server_address=args.server_address, config=server_config, strategy=strategy)
+    # start_server(server_address=args.server_address, config=server_config, strategy=strategy)
 
 
 if __name__ == "__main__":

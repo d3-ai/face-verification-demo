@@ -16,6 +16,7 @@ criterion="ArcFace"
 save_model=0
 
 # fl configuration
+strategy="FedAvg"
 num_rounds=2
 num_clients=3
 
@@ -29,7 +30,7 @@ margin=0.01
 
 seed=1234
 
-exp_dir="./exp/${dataset}/FedAvg_${model}/"${target}"/R_${num_rounds}_B_${batch_size}_E_${local_epochs}_lr_${lr}_S_${seed}"
+exp_dir="./exp/${dataset}/${strategy}_${model}/"${target}"/R_${num_rounds}_B_${batch_size}_E_${local_epochs}_lr_${lr}_S_${seed}"
 
 if [ ! -e "${exp_dir}" ]; then
     mkdir -p "${exp_dir}/logs/"
@@ -38,6 +39,7 @@ if [ ! -e "${exp_dir}" ]; then
 fi
 
 python ./face_verification/server.py --server_address ${server_address} \
+--strategy ${strategy} \
 --num_rounds ${num_rounds} \
 --num_clients ${num_clients} \
 --dataset ${dataset} \
@@ -48,9 +50,6 @@ python ./face_verification/server.py --server_address ${server_address} \
 --batch_size ${batch_size} \
 --lr ${lr} \
 --weight_decay ${weight_decay} \
---criterion ${criterion} \
---scale ${scale} \
---margin ${margin} \
 --save_model ${save_model} \
 --seed ${seed} \
 2>"${exp_dir}/logs/server_flower.log" &

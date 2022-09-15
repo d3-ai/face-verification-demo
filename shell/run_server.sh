@@ -8,18 +8,15 @@ args+=($arg)
 done
 server_address=${args[1]}
 
-dataset="CIFAR10"
-target="iid"
+dataset="CelebA"
+target="small"
 model="GNResNet18"
-pretrained="IMAGENET1K_V1"
+pretrained="CelebA"
 
 # fl configuration
 num_rounds=2
 num_clients=3
-
-# fl configuration
-num_rounds=5
-num_clients=2
+strategy="FedAwS"
 
 # fit configuration
 batch_size=10
@@ -30,7 +27,7 @@ weight_decay=5e-4
 
 seed=1234
 
-exp_dir="./exp/${dataset}/FedAvg_${model}/"${target}"/R_${num_rounds}_B_${batch_size}_E_${local_epochs}_lr_${lr}_S_${seed}"
+exp_dir="./exp/${dataset}/${strategy}_${model}/"${target}"/R_${num_rounds}_B_${batch_size}_E_${local_epochs}_lr_${lr}_S_${seed}"
 
 if [ ! -e "${exp_dir}" ]; then
     mkdir -p "${exp_dir}/logs/"
@@ -39,6 +36,7 @@ if [ ! -e "${exp_dir}" ]; then
 fi
 
 python ./local/server.py --server_address ${server_address} \
+--strategy ${strategy} \
 --num_rounds ${num_rounds} \
 --num_clients ${num_clients} \
 --dataset ${dataset} \
