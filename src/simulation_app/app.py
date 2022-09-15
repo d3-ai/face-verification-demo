@@ -168,9 +168,9 @@ def start_simulation(  # pylint: disable=too-many-arguments
         initialized_server.client_manager().register(client=client_proxy)
 
     # Start training
-    hist = _fl(
+    hist, params = _fl(
         server=initialized_server,
         config=initialized_config,
     )
 
-    return hist
+    return hist, params

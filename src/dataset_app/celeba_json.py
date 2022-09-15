@@ -141,7 +141,7 @@ def verification_partition(train: bool =True, target: str = 'large'):
     elif target == 'medium':
         celeb_keys = celeb_keys[:100]
     elif target == 'large':
-        celeb_keys = celeb_keys[:1000]
+        celeb_keys = celeb_keys[10:1010]
     else:
         raise NotImplementedError(f"{target} is not supported")
     
@@ -183,5 +183,5 @@ def main():
     write_json(test_json_data, train=False)
 
 if __name__ == "__main__":
-    verification_partition(True)
+    verification_partition(False)
     # main()

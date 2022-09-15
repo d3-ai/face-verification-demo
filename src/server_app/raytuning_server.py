@@ -84,4 +84,4 @@ class RayTuneServer(Server):
         end_time = timeit.default_timer()
         elapsed = end_time - start_time
         log(INFO, "FL finished in %s", elapsed)
-        return history
+        return history, self.parameters

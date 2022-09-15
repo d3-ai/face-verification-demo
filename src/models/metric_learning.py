@@ -1,3 +1,4 @@
+from logging import INFO
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -20,6 +21,8 @@ from typing import (
     Callable,
     Any
 )
+
+from flwr.common.logger import log
 
 from models.base_model import Net
 class ArcFaceResNet(Net):
@@ -272,14 +275,26 @@ def get_arcface_resnet18(
     input_spec,
     num_classes: int,
     pretrained: str = None,
+    fixed_embeddings: int = 0,
     norm_layer: Optional[Callable[...,nn.Module]] = None,
     **kwargs: Any,) -> ArcFaceResNet:
     if input_spec[1] >= 112:
         model = ArcFaceResNet(BasicBlock, [2,2,2,2], num_classes=num_classes, norm_layer=norm_layer, **kwargs)
-        if pretrained is not None:
+        if pretrained == "IMAGENET1K_V1":
             model.load_state_dict(ResNet18_Weights.IMAGENET1K_V1.get_state_dict(progress=True), strict=False)
+        elif pretrained == "CelebA":
+            if norm_layer is not None:
+                pretrained_weight = torch.load("./models/GNResNet18.pth")
+            else:
+                pretrained_weight = torch.load("./models/ResNet18.pth")
+            # pretrained_weight['arcmarginprod.weight'] = ArcMarginProduct(512,num_classes)
+            pretrained_weight['arcmarginprod.weight'] = torch.FloatTensor(num_classes, 512)
+            nn.init.xavier_normal_(pretrained_weight['arcmarginprod.weight'])
+            model.load_state_dict(pretrained_weight, strict=False)
     else:
         model = ArcFaceResNetLR(BasicBlock, [2,2,2,2], num_classes=num_classes, norm_layer=norm_layer, **kwargs)
+    if fixed_embeddings:
+        model.arcmarginprod.weight.requires_grad = False
     return model
 
 # Copied and modified from
@@ -374,3 +389,24 @@ class ArcFaceLoss(nn.modules.Module):
         
         return loss
 
+class CosineContrastiveLoss(nn.modules.Module):
+    def __init__(self, nu: float = 0.9)->None:
+        super().__init__()
+        self.nu = nu
+    def forward(self, x, labels):
+        loss = torch.pow(torch.max(torch.tensor(0.), self.nu-x),2).mean()
+        return loss
+        
+
+class SpreadoutRegularizer(nn.modules.Module):
+    def __init__(self, nu: float = 0.9)-> None:
+        super().__init__()
+        self.nu = nu
+
+    def forward(self, w, out_dims):
+        w = F.normalize(w)
+        loss = 0.0
+        for i in range(out_dims-1):
+            for j in range(i+1, out_dims):
+                loss += torch.pow(torch.max(torch.tensor(0.), self.nu - 1 + torch.dot(w[i,:], w[j,:])),2)
+        return loss

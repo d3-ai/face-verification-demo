@@ -11,7 +11,7 @@ server_address=${args[1]}
 dataset="CelebA"
 target="small"
 model="GNResNet18"
-pretrained="IMAGENET1K_V1"
+pretrained="CelebA"
 criterion="ArcFace"
 save_model=0
 
