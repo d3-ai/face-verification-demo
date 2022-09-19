@@ -167,6 +167,7 @@ class FederatedUsbcamVerification(Dataset):
         with open(self.json_path, 'r') as f:
             self.json_data = json.load(f)
 
+        self.data = {}
         self.num_samples = self.json_data['num_samples']
         self.data['x'] = self.json_data['user_data']['x']
         self.data['y'] = [self.id for _ in range(self.num_samples)]

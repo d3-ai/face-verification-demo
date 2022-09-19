@@ -9,30 +9,13 @@ done
 server_address=${args[1]}
 cid=${args[3]}
 
-dataset="CelebA"
+# model config
+dataset="usbcam"
 target="small"
 model="GNResNet18"
 pretrained="None"
 
-# fl configuration
-num_rounds=2
-num_clients=3
-
-# fit configuration
-batch_size=10
-local_epochs=1
-lr=0.05
-
 seed=1234
-
-exp_dir="./exp/${dataset}/FedAvg_${model}/"${target}"/R_${num_rounds}_B_${batch_size}_E_${local_epochs}_lr_${lr}_S_${seed}"
-
-if [ ! -e "${exp_dir}" ]; then
-    mkdir -p "${exp_dir}/logs/"
-    mkdir -p "${exp_dir}/models/"
-    mkdir -p "${exp_dir}/metrics/"
-fi
-
 
 python ./face_verification/client.py --server_address ${server_address} \
 --cid ${cid} \
@@ -40,8 +23,7 @@ python ./face_verification/client.py --server_address ${server_address} \
 --target ${target} \
 --model ${model} \
 --pretrained ${pretrained} \
---seed ${seed} \
-2>"${exp_dir}/logs/client${cid}_flower.log" &
+--seed ${seed} &
 
 # This will allow you to use CTRL+C to stop all background processes
 trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM

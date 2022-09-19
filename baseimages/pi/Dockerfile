@@ -36,7 +36,10 @@ libxml2-dev \
 libxmlsec1-dev \
 libffi-dev \
 liblzma-dev \
-python3-distutils
+python3-distutils \
+python3-tk \
+libpng-dev \
+libjpeg-dev
 
 ARG USER
 ENV USER=${USER}
@@ -54,10 +57,9 @@ ENV PATH $PYENV_ROOT/shims:$PATH
 RUN eval "$(pyenv init -)" && pyenv install 3.8.0 && pyenv global 3.8.0
 RUN pip install pipenv
 
-WORKDIR /project
 RUN pipenv install --python 3.8.0 
-RUN pipenv install https://download.pytorch.org/whl/cpu/torch-1.8.0-cp38-cp38-manylinux2014_aarch64.whl --skip-lock && \
-pipenv install https://download.pytorch.org/whl/cpu/torchvision-0.9.1-cp38-cp38-manylinux2014_aarch64.whl --skip-lock && \
+RUN pipenv install http://download.pytorch.org/whl/cpu/torch-1.12.0-cp38-cp38-manylinux2014_aarch64.whl --skip-lock && \
+pipenv install http://download.pytorch.org/whl/cpu/torchvision-0.13.0-cp38-cp38-manylinux2014_aarch64.whl --skip-lock && \
 pipenv install flwr==1.0.0 --skip-lock && \
 pipenv install tqdm --skip-lock && \
 pipenv install matplotlib --skip-lock && \

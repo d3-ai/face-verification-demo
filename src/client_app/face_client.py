@@ -59,6 +59,8 @@ class FlowerFaceClient(Client):
 
         # set parameters
         self.net.set_weights(weights)
+        save_path = f"./tmp/model_{int(ins.config['round'])}.pth"
+        torch.save(self.net.to("cpu").state_dict(), save_path)
 
         # dataset configuration train / validation
         trainloader = DataLoader(self.trainset, batch_size=batch_size, num_workers=2, pin_memory=True, shuffle=True, drop_last=True)

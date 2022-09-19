@@ -19,7 +19,7 @@ def fig_setup():
     plt.rcParams['axes.linewidth'] = 1.5
     plt.rcParams["legend.edgecolor"] = 'black'
     plt.rcParams["legend.markerscale"] = 10
-    plt.rcParams['font.family'] = ['Arial']
+    # plt.rcParams['font.family'] = ['Arial']
 
 def visualize_2d_embedded_space(net: Union[ArcFaceResNet, ArcFaceResNetLR], num_classes: int, testloader: DataLoader, save_path: str = None):
     net.to("cpu")

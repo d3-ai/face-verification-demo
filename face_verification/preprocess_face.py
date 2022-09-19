@@ -40,8 +40,8 @@ def main():
 
             # landmarks detection using MTCNN from facenet-pytorch
             _, _, _landmarks = mtcnn.detect(image, landmarks=True)
-            assert _landmarks.size == 10
-            info[i] = image_name + " " + " ".join([str(marker) for marker in _landmarks.reshape(-1)]) + "\n"
+            assert _landmarks[0].size == 10
+            info[i] = image_name + " " + " ".join([str(marker) for marker in _landmarks[0].reshape(-1)]) + "\n"
         
         with open(file=landmark_path, mode='x') as f:
             f.write(str(num_images)+"\n")

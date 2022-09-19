@@ -1,6 +1,7 @@
 /.devcontainer/.wandb_api_key
 /.devcontainer/.gpu_uuid
 /data/*/raw
+/data/usbcam
 /res
 /exp
 /wandb

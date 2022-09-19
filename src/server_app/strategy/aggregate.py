@@ -16,7 +16,7 @@
 
 
 from functools import reduce
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 import numpy as np
 import torch
@@ -70,12 +70,20 @@ def aggregate_qffl(
     new_parameters = [(u - v) * 1.0 for u, v in zip(parameters, updates)]
     return new_parameters
 
-def aggregate_and_spreadout(results: List[Tuple[NDArrays, int]], num_clients: int, num_features: int, nu: float, lr: float) ->Tuple[NDArrays, NDArray]:
+def aggregate_and_spreadout(results: List[Tuple[NDArrays, int, str]], num_clients: int, num_features: int, nu: float, lr: float) ->Tuple[NDArrays, Dict[str, NDArray]]:
     """Compute weighted average."""
     # Create a classification matrix from class embeddings
     embeddings: NDArray = np.zeros((num_clients,num_features))
-    for weights, _, cid in results:
-        embeddings[cid,:] = weights[-1]
+    cid_dict: Dict[str, int] = {} 
+    embedding_dict: Dict[str, NDArray] = {} 
+
+    for idx, res in enumerate(results):
+        weights, _, cid = res
+        cid_dict[cid] = idx
+        if "ipv4" in cid:
+            embeddings[idx,:] = weights[-1]
+        else:
+            embeddings[int(cid),:] = weights[-1]
     
     embeddings = torch.nn.Parameter(torch.tensor(embeddings))
     regularizer = SpreadoutRegularizer(nu=nu)
@@ -101,5 +109,7 @@ def aggregate_and_spreadout(results: List[Tuple[NDArrays, int]], num_clients: in
         for layer_updates in zip(*feature_weights)
     ]
     weights_prime.append(embeddings)
+    for cid, idx in cid_dict.items():
+        embedding_dict[cid] = embeddings[np.newaxis, idx, :]
 
-    return weights_prime, embeddings
+    return weights_prime, embedding_dict

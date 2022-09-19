@@ -106,7 +106,8 @@ class FedAwS(FedAvg):
         """
         self.embeddings: C x d tensors comprising of client class embeddings.
         """
-        self.embeddings = initial_embeddings
+        self.initial_embeddings = initial_embeddings
+        self.embeddings_dict = {}
 
     def __repr__(self) -> str:
         rep = f"FedAdam(accept_failures={self.accept_failures})"
@@ -128,8 +129,11 @@ class FedAwS(FedAvg):
         )
         weights: NDArrays = parameters_to_ndarrays(parameters)
         parameters_dict: Dict[str, Parameters] = {}
+        if any(self.embeddings_dict):
+            for idx, c in enumerate(client):
+                self.embeddings_dict[c.cid] = self.initial_embeddings[np.newaxis, idx, :]
         for client in clients:
-            weights[-1] = self.embeddings[np.newaxis,int(client.cid),:]
+            weights[-1] = self.embeddings_dict[client.cid]
             parameters_dict[client.cid] = ndarrays_to_parameters(weights)
 
         return [(client, FitIns(parameters=parameters_dict[client.cid], config=config)) for client in clients]
@@ -153,11 +157,11 @@ class FedAwS(FedAvg):
 
         # Convert results
         weights_results = [
-            (parameters_to_ndarrays(fit_res.parameters), fit_res.num_examples, int(client.cid))
+            (parameters_to_ndarrays(fit_res.parameters), fit_res.num_examples, client.cid)
             for client, fit_res in results
         ]
 
-        parameters_aggregated, self.embeddings = aggregate_and_spreadout(weights_results, num_clients=len(weights_results), num_features=512, nu=self.nu, lr=self.eta*self.lam)
+        parameters_aggregated, self.embeddings_dict = aggregate_and_spreadout(weights_results, num_clients=len(weights_results), num_features=512, nu=self.nu, lr=self.eta*self.lam)
 
         metrics_aggregated = {}
         if self.fit_metrics_aggregation_fn:
