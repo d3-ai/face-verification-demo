@@ -17,16 +17,14 @@ save_model=0
 
 # fl configuration
 strategy="FedAvg"
-num_rounds=2
-num_clients=3
+num_rounds=10
+num_clients=10
 
 # fit configuration
-batch_size=10
+batch_size=2
 local_epochs=1
-lr=0.05
+lr=0.005
 weight_decay=1e-4
-scale=3.0
-margin=0.01
 
 seed=1234
 

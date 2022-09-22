@@ -110,6 +110,7 @@ def main():
         criterion = "CCL"
         def fit_config(server_rnd: int)-> Dict[str, Scalar]:
             config = {
+                "round": server_rnd,
                 "local_epochs": args.local_epochs,
                 "batch_size": args.batch_size,
                 "lr": args.lr,

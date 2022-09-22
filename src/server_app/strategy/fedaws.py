@@ -129,8 +129,8 @@ class FedAwS(FedAvg):
         )
         weights: NDArrays = parameters_to_ndarrays(parameters)
         parameters_dict: Dict[str, Parameters] = {}
-        if any(self.embeddings_dict):
-            for idx, c in enumerate(client):
+        if not any(self.embeddings_dict):
+            for idx, c in enumerate(clients):
                 self.embeddings_dict[c.cid] = self.initial_embeddings[np.newaxis, idx, :]
         for client in clients:
             weights[-1] = self.embeddings_dict[client.cid]

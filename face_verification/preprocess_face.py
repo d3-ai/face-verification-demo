@@ -1,5 +1,6 @@
 import argparse
 import os
+import json
 import numpy as np
 
 from typing import Any, List
@@ -75,6 +76,38 @@ def main():
         save_path = save_dir / face_name
         cropped_face_pil.save(save_path)
         print(save_path)
+
+    # Dump json
+    save_dir = Path("./data") / args.dataset.lower() / "identities"
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    num_samples = 30
+    split = 0.8
+    train_samples = int(num_samples * split)
+    test_samples = num_samples - train_samples
+    img_list = [f"{i+1:06}.jpg" for i in range(30)]
+    
+    train_data = {}
+    train_data["num_samples"] = train_samples
+    train_data["user_data"] = {
+        "x": img_list[:train_samples],
+        "y": [0 for _ in range(train_samples)]
+        }
+    file_path = save_dir / "train_data.json"
+    with open(file_path, 'w') as outfile:
+        json.dump(train_data, outfile)
+    
+    test_data = {}
+    test_data["num_samples"] = test_samples
+    test_data["user_data"] = {
+        "x": img_list[train_samples:],
+        "y": [0 for _ in range(test_samples)]
+        }
+    file_path = save_dir / "test_data.json"
+    with open(file_path, 'w') as outfile:
+        json.dump(test_data, outfile)
+
         
 if __name__ == "__main__":
     main()
