@@ -12,8 +12,8 @@ from flwr.common.logger import log
 from server_app.server import Server
 from server_app.app import ServerConfig, _fl, _init_defaults
 from server_app.client_manager import ClientManager
-from flwr.server.history import History
-from flwr.server.strategy import Strategy
+from server_app.history import History
+from server_app.strategy.strategy import Strategy
 from .ray_transport.ray_client_proxy import RayClientProxy
 
 INVALID_ARGUMENTS_START_SIMULATION = """

@@ -1,0 +1,41 @@
+version: "3.8"
+
+services: 
+  flower_mockup:
+    container_name: "test"
+    build: 
+      context: ../../
+      dockerfile: ./baseimages/cpu_machine/Dockerfile
+      args: 
+        - USER=$USER
+    shm_size: "8gb"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../../exp:/home/$USER/project/exp
+      - ../../shell:/home/$USER/project/shell
+      - ../../conf:/home/$USER/project/conf:ro
+      - ../../src/client_app:/home/$USER/project/src/client_app:ro
+      - ../../src/common:/home/$USER/project/src/common:ro
+      - ../../src/dataset_app:/home/$USER/project/src/dataset_app:ro
+      - ../../src/utils:/home/$USER/project/src/utils:ro
+      - ../../src/models:/home/$USER/project/src/models:ro
+      - ../../src/server_app:/home/$USER/project/src/server_app:ro
+      - ../../src/simulation_app:/home/$USER/project/src/simulation_app:ro
+      - ../../src/tune_app:/home/$USER/project/src/tune_app:ro
+      - ../../src/driver.py:/home/$USER/project/src/driver.py:ro
+      - ../../local:/home/$USER/project/local:ro
+      - ../../face_verification:/home/$USER/project/face_verification:ro
+      - ../../data/CIFAR10/raw:/home/$USER/project/data/CIFAR10/raw:ro
+      - ../../data/CIFAR10/partitions:/home/$USER/project/data/CIFAR10/partitions:ro
+      - ../../data/celeba/:/home/$USER/project/data/celeba/:ro
+      - ../../models:/home/$USER/project/models:ro
+    secrets:
+      - wandb_api_key
+    environment:
+      - DATA_ROOT=/home/$USER/project/data
+      - WANDB_API_KEY_FILE=/run/secrets/wandb_api_key
+
+secrets:
+  wandb_api_key:
+    file: ../.wandb_api_key

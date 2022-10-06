@@ -1,6 +1,6 @@
 {
     "name": "Docker-Python",
-    "dockerComposeFile": "./docker-compose.yml",
+    "dockerComposeFile": "./gpu_machine/docker-compose.yml",
     "service": "flower_mockup",
     "workspaceFolder": "/home/yamasaki/project",
     "customizations": {

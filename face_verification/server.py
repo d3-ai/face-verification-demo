@@ -1,4 +1,6 @@
 import argparse
+import json
+import yaml
 import warnings
 import gc
 
@@ -10,6 +12,8 @@ from torch.utils.data import DataLoader
 from server_app.strategy.fedavg import FedAvg
 from server_app.strategy.fedaws import FedAwS
 from server_app.app import ServerConfig, start_server
+from server_app.custom_server import CustomServer
+from server_app.client_manager import SimpleClientManager
 
 from driver import test
 from models.base_model import Net
@@ -19,6 +23,7 @@ from common import ndarrays_to_parameters
 
 from common import Parameters, Scalar, NDArrays, NDArray
 from typing import Dict, Optional, Tuple, Callable
+from pathlib import Path
 warnings.filterwarnings("ignore")
 
 parser = argparse.ArgumentParser("Flower face verification server")
@@ -35,6 +40,7 @@ parser.add_argument("--batch_size", type=int, required=False, default=10, help="
 parser.add_argument("--lr", type=float, required=False, default=0.01, help="Client fit config: learning rate")
 parser.add_argument("--weight_decay", type=float, required=False, default=0.0, help="Client fit config: weigh_decay")
 parser.add_argument("--save_model", type=int, required=False, default=0, help="flag for model saving")
+parser.add_argument("--save_dir", type=str, required=False, help="save directory for the obtained results")
 parser.add_argument("--seed", type=int, required=False, default=1234, help="Random seed")
 
 def set_seed(seed: int):
@@ -78,7 +84,14 @@ def main():
             gc.collect()
             return results['loss'], {"accuracy": results['acc']}
         return evaluate
-
+    
+    def timestamp_aggregation_fn(fit_metrics: Dict[str, Scalar])->Dict[str, Dict[str, Scalar]]:
+        timestamps_aggregated: Dict[str, Dict[str, float]] = {}
+        for cid, metrics in fit_metrics.items():
+            timestamps_aggregated[cid] = {}
+            timestamps_aggregated[cid]["comm"] = metrics["total"] - metrics["comp"]
+            timestamps_aggregated[cid]["comp"] = metrics["comp"]
+        return timestamps_aggregated
     # Create strategy
     if args.strategy == "FedAvg":
         criterion = "ArcFace"
@@ -86,6 +99,7 @@ def main():
         margin = 0.1
         def fit_config(server_rnd: int)-> Dict[str, Scalar]:
             config = {
+                "round": server_rnd,
                 "local_epochs": args.local_epochs,
                 "batch_size": args.batch_size,
                 "lr": args.lr,
@@ -104,6 +118,7 @@ def main():
             evaluate_fn=get_eval_fn(model, args.dataset, args.target),
             on_fit_config_fn=fit_config,
             on_evaluate_config_fn=eval_config,
+            fit_metrics_aggregation_fn=timestamp_aggregation_fn,
             initial_parameters=init_parameters,
         )
     elif args.strategy == "FedAwS":
@@ -136,9 +151,26 @@ def main():
             eta=0.01,
             lam=10
         )
+    client_manager = SimpleClientManager()
+    server = CustomServer(
+        client_manager=client_manager,
+        strategy=strategy,
+    )
 
     # Start Flower server for four rounds of federated learning
-    # start_server(server_address=args.server_address, config=server_config, strategy=strategy)
+    hist, _ = start_server(server_address=args.server_address, server=server, config=server_config,)
+    
+    # Save results
+    save_path = Path(args.save_dir) / "config.yaml"
+    config = vars(args)
+    with open(save_path, 'w') as outfile:
+        yaml.dump(config, outfile)
+    save_path = Path(args.save_dir) / "metrics" / "timestamps_federated.json"
+    with open(save_path, 'w') as outfile:
+        json.dump(hist.timestamps_distributed, outfile)
+    save_path = Path(args.save_dir) / "metrics" / "timestamps_centralized.json"
+    with open(save_path, 'w') as outfile:
+        json.dump(hist.timestamps_centralized, outfile)
 
 
 if __name__ == "__main__":

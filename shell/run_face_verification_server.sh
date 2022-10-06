@@ -12,23 +12,25 @@ dataset="CelebA"
 target="small"
 model="GNResNet18"
 pretrained="CelebA"
-criterion="ArcFace"
 save_model=0
 
 # fl configuration
 strategy="FedAvg"
-num_rounds=10
-num_clients=10
+num_rounds=2
+num_clients=2
 
 # fit configuration
-batch_size=2
+batch_size=4
 local_epochs=1
 lr=0.005
 weight_decay=1e-4
+scale=32.0
+margin=0.1
 
 seed=1234
 
-exp_dir="./exp/${dataset}/${strategy}_${model}/"${target}"/R_${num_rounds}_B_${batch_size}_E_${local_epochs}_lr_${lr}_S_${seed}"
+time=`date '+%Y%m%d%H%M'`
+exp_dir="./exp/${dataset}/${strategy}_${model}/"${target}"/run_${time}"
 
 if [ ! -e "${exp_dir}" ]; then
     mkdir -p "${exp_dir}/logs/"
@@ -49,6 +51,7 @@ python ./face_verification/server.py --server_address ${server_address} \
 --lr ${lr} \
 --weight_decay ${weight_decay} \
 --save_model ${save_model} \
+--save_dir ${exp_dir} \
 --seed ${seed} \
 2>"${exp_dir}/logs/server_flower.log" &
 
