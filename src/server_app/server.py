@@ -35,8 +35,9 @@ from common import (
 from flwr.common.logger import log
 from .client_manager import ClientManager
 from .client_proxy import ClientProxy
-from flwr.server.history import History
-from flwr.server.strategy import FedAvg, Strategy
+from .history import History
+from .strategy.strategy import Strategy
+from .strategy.fedavg import FedAvg
 
 FitResultsAndFailures = Tuple[
     List[Tuple[ClientProxy, FitRes]],
@@ -78,7 +79,7 @@ class Server:
         return self._client_manager
 
     # pylint: disable=too-many-locals
-    def fit(self, num_rounds: int, timeout: Optional[float]) -> History:
+    def fit(self, num_rounds: int, timeout: Optional[float]) -> Tuple[History, Parameters]:
         """Run federated averaging for a number of rounds."""
         history = History()
 
@@ -219,6 +220,7 @@ class Server:
             len(client_instructions),
             self._client_manager.num_available(),
         )
+        self.set_max_workers(max_workers=len(client_instructions))
 
         # Collect `fit` results from all clients participating in this round
         results, failures = fit_clients(

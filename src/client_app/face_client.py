@@ -1,3 +1,4 @@
+import timeit
 import torch
 from torch.utils.data import DataLoader
 from flwr.client import Client
@@ -42,6 +43,7 @@ class FlowerFaceClient(Client):
         self.model = config["model_name"]
         dataset_config = configure_dataset(self.dataset, target=self.target)
         self.net: Net = load_arcface_model(name=self.model, input_spec=dataset_config['input_spec'], out_dims=dataset_config['out_dims'], pretrained=self.pretrained)
+        # self.net: Net = load_arcface_model(name=self.model, input_spec=dataset_config['input_spec'], out_dims=1, pretrained=self.pretrained)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     
     def get_parameters(self, ins: GetParametersIns) -> GetParametersRes:
@@ -49,6 +51,7 @@ class FlowerFaceClient(Client):
         return GetParametersRes(status=Code.OK, parameters=parameters)
     
     def fit(self, ins: FitIns) -> FitRes:
+        start_time = timeit.default_timer()
         # unwrapping FitIns
         weights: NDArrays = parameters_to_ndarrays(ins.parameters)
         epochs: int = int(ins.config["local_epochs"])
@@ -59,8 +62,6 @@ class FlowerFaceClient(Client):
 
         # set parameters
         self.net.set_weights(weights)
-        save_path = f"./tmp/model_{int(ins.config['round'])}.pth"
-        torch.save(self.net.to("cpu").state_dict(), save_path)
 
         # dataset configuration train / validation
         trainloader = DataLoader(self.trainset, batch_size=batch_size, num_workers=2, pin_memory=True, shuffle=True, drop_last=True)
@@ -76,8 +77,8 @@ class FlowerFaceClient(Client):
 
         train(self.net, trainloader=trainloader, epochs=epochs, lr=lr, weight_decay=weight_decay, criterion=criterion, device=self.device)
         parameters_prime: Parameters = ndarrays_to_parameters(self.net.get_weights())
-
-        return FitRes(status=Status(Code.OK ,message="Success fit"), parameters=parameters_prime, num_examples=len(self.trainset), metrics={})
+        time_stamp = timeit.default_timer() - start_time
+        return FitRes(status=Status(Code.OK ,message="Success fit"), parameters=parameters_prime, num_examples=len(self.trainset), metrics={"comp": time_stamp})
 
     def evaluate(self, ins: EvaluateIns) -> EvaluateRes:
         # unwrap FitIns

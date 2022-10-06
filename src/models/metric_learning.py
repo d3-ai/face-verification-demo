@@ -12,6 +12,10 @@ from torchvision.models.resnet import (
     Bottleneck,
     ResNet18_Weights,
 )
+try:
+    from torchvision.models.resnet import ResNet18_Weights
+except:
+    pass
 from torchvision.utils import _log_api_usage_once
 from typing import (
     Type,

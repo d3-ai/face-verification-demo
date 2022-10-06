@@ -1,6 +1,9 @@
 import torch
 import torch.nn as nn
-from torchvision.models import efficientnet_b0, EfficientNet_B0_Weights
+try:
+    from torchvision.models import efficientnet_b0, EfficientNet_B0_Weights
+except:
+    pass
 
 from .base_model import Net
 

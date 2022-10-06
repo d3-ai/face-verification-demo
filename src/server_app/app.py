@@ -8,6 +8,8 @@ from logging import INFO, WARN
 from flwr.common.logger import log
 from flwr.server.history import History
 from flwr.server.strategy import FedAvg, Strategy
+
+from common.typing import Parameters
 from .grpc_server.grpc_server import start_grpc_server
 
 # typing
@@ -153,7 +155,7 @@ def _init_defaults(
 def _fl(
     server: Server,
     config: ServerConfig,
-) -> History:
+) -> Tuple[History, Parameters]:
     # Fit model
     hist, params = server.fit(num_rounds=config.num_rounds, timeout=config.round_timeout)
     log(INFO, "app_fit: losses_distributed %s", str(hist.losses_distributed))

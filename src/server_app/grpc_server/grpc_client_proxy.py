@@ -22,6 +22,9 @@ from flwr.proto.transport_pb2 import ClientMessage, ServerMessage
 from server_app.client_proxy import ClientProxy
 from server_app.grpc_server.grpc_bridge import GRPCBridge, InsWrapper, ResWrapper
 
+from logging import DEBUG
+from flwr.common.logger import log
+import timeit
 
 class GrpcClientProxy(ClientProxy):
     """Flower client proxy which delegates over the network using gRPC."""
@@ -79,15 +82,17 @@ class GrpcClientProxy(ClientProxy):
     ) -> common.FitRes:
         """Refine the provided parameters using the locally held dataset."""
         fit_ins_msg = serde.fit_ins_to_proto(ins)
-
+        start_time = timeit.default_timer()
         res_wrapper: ResWrapper = self.bridge.request(
             ins_wrapper=InsWrapper(
                 server_message=ServerMessage(fit_ins=fit_ins_msg),
                 timeout=timeout,
             )
         )
+        total_time = timeit.default_timer()-start_time
         client_msg: ClientMessage = res_wrapper.client_message
         fit_res = serde.fit_res_from_proto(client_msg.fit_res)
+        fit_res.metrics["total"] = total_time
         return fit_res
 
     def evaluate(
@@ -97,12 +102,14 @@ class GrpcClientProxy(ClientProxy):
     ) -> common.EvaluateRes:
         """Evaluate the provided parameters using the locally held dataset."""
         evaluate_msg = serde.evaluate_ins_to_proto(ins)
+        start_time = timeit.default_timer()
         res_wrapper: ResWrapper = self.bridge.request(
             ins_wrapper=InsWrapper(
                 server_message=ServerMessage(evaluate_ins=evaluate_msg),
                 timeout=timeout,
             )
         )
+        log(DEBUG, "cid %s evaluate and communciation took %s", self.cid, timeit.default_timer() - start_time)
         client_msg: ClientMessage = res_wrapper.client_message
         evaluate_res = serde.evaluate_res_from_proto(client_msg.evaluate_res)
         return evaluate_res

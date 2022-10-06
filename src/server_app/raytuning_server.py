@@ -1,19 +1,15 @@
-import concurrent.futures
-import ray
-from flwr.server.history import History
-from flwr.common.logger import log
-
 import timeit
 from logging import DEBUG, INFO
+from flwr.common.logger import log
 
-import torch
 
 # typing
 from .client_manager import ClientManager
 from .client_proxy import ClientProxy
 from .server import Server
+from .strategy.strategy import Strategy
+from .history import History
 from common.typing import Parameters, Scalar, FitRes, FitIns, Code
-from flwr.server.strategy.strategy import Strategy
 from typing import Optional, Tuple, Union, Dict, List
 
 import wandb
@@ -24,6 +20,9 @@ FitResultsAndFailures = Tuple[
 ]
 
 class RayTuneServer(Server):
+    """
+    Flower server implementation for parameter search using ray.tune and wandb.
+    """
     def __init__(self, client_manager: ClientManager, strategy: Optional[Strategy] = None) -> None:
         super(RayTuneServer, self).__init__(client_manager=client_manager,strategy=strategy)
     # @wandb_mixin

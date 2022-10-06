@@ -7,7 +7,6 @@ from torchvision.models.resnet import (
     BasicBlock,
     Bottleneck,
 )
-from torchvision.utils import _log_api_usage_once
 from typing import (
     Tuple,
     Type,
@@ -17,6 +16,10 @@ from typing import (
     Callable,
     Any
 )
+try:
+    from torchvision.utils import _log_api_usage_once
+except:
+    pass
 
 from models.base_model import Net
 
