@@ -10,7 +10,6 @@ from torchvision.models.resnet import (
     conv1x1,
     BasicBlock,
     Bottleneck,
-    ResNet18_Weights,
 )
 try:
     from torchvision.models.resnet import ResNet18_Weights
