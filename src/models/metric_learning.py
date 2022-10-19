@@ -1,33 +1,22 @@
-from logging import INFO
+import math
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import math
 from torch import Tensor
+from torchvision.models.resnet import BasicBlock, Bottleneck, conv1x1
 
-from torchvision.models.resnet import (
-    resnet18,
-    conv1x1,
-    BasicBlock,
-    Bottleneck,
-)
 try:
     from torchvision.models.resnet import ResNet18_Weights
-except:
+except ImportError:
     pass
-from torchvision.utils import _log_api_usage_once
-from typing import (
-    Type,
-    Union,
-    List,
-    Optional,
-    Callable,
-    Any
-)
+from typing import Any, Callable, List, Optional, Type, Union
 
-from flwr.common.logger import log
+from torchvision.utils import _log_api_usage_once
 
 from models.base_model import Net
+
+
 class ArcFaceResNet(Net):
     def __init__(
         self,
@@ -68,7 +57,7 @@ class ArcFaceResNet(Net):
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2, dilate=replace_stride_with_dilation[1])
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2, dilate=replace_stride_with_dilation[2])
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.arcmarginprod = ArcMarginProduct(512, num_classes) 
+        self.arcmarginprod = ArcMarginProduct(512, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -110,7 +99,14 @@ class ArcFaceResNet(Net):
         layers = []
         layers.append(
             block(
-                self.inplanes, planes, stride, downsample, self.groups, self.base_width, previous_dilation, norm_layer
+                self.inplanes,
+                planes,
+                stride,
+                downsample,
+                self.groups,
+                self.base_width,
+                previous_dilation,
+                norm_layer,
             )
         )
         self.inplanes = planes * block.expansion
@@ -150,6 +146,7 @@ class ArcFaceResNet(Net):
 
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
+
 
 class ArcFaceResNetLR(Net):
     def __init__(
@@ -191,7 +188,7 @@ class ArcFaceResNetLR(Net):
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2, dilate=replace_stride_with_dilation[2])
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(512 * block.expansion, 2)
-        self.arcmarginprod = ArcMarginProduct(2, num_classes) 
+        self.arcmarginprod = ArcMarginProduct(2, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -233,7 +230,14 @@ class ArcFaceResNetLR(Net):
         layers = []
         layers.append(
             block(
-                self.inplanes, planes, stride, downsample, self.groups, self.base_width, previous_dilation, norm_layer
+                self.inplanes,
+                planes,
+                stride,
+                downsample,
+                self.groups,
+                self.base_width,
+                previous_dilation,
+                norm_layer,
             )
         )
         self.inplanes = planes * block.expansion
@@ -279,32 +283,49 @@ def get_arcface_resnet18(
     num_classes: int,
     pretrained: str = None,
     fixed_embeddings: int = 0,
-    norm_layer: Optional[Callable[...,nn.Module]] = None,
-    **kwargs: Any,) -> ArcFaceResNet:
+    norm_layer: Optional[Callable[..., nn.Module]] = None,
+    **kwargs: Any,
+) -> ArcFaceResNet:
     if input_spec[1] >= 112:
-        model = ArcFaceResNet(BasicBlock, [2,2,2,2], num_classes=num_classes, norm_layer=norm_layer, **kwargs)
+        model = ArcFaceResNet(
+            BasicBlock,
+            [2, 2, 2, 2],
+            num_classes=num_classes,
+            norm_layer=norm_layer,
+            **kwargs,
+        )
         if pretrained == "IMAGENET1K_V1":
-            model.load_state_dict(ResNet18_Weights.IMAGENET1K_V1.get_state_dict(progress=True), strict=False)
+            model.load_state_dict(
+                ResNet18_Weights.IMAGENET1K_V1.get_state_dict(progress=True),
+                strict=False,
+            )
         elif pretrained == "CelebA":
             if norm_layer is not None:
                 pretrained_weight = torch.load("./models/GNResNet18.pth")
             else:
                 pretrained_weight = torch.load("./models/ResNet18.pth")
             # pretrained_weight['arcmarginprod.weight'] = ArcMarginProduct(512,num_classes)
-            pretrained_weight['arcmarginprod.weight'] = torch.FloatTensor(num_classes, 512)
-            nn.init.xavier_normal_(pretrained_weight['arcmarginprod.weight'])
+            pretrained_weight["arcmarginprod.weight"] = torch.FloatTensor(num_classes, 512)
+            nn.init.xavier_normal_(pretrained_weight["arcmarginprod.weight"])
             model.load_state_dict(pretrained_weight, strict=False)
     else:
-        model = ArcFaceResNetLR(BasicBlock, [2,2,2,2], num_classes=num_classes, norm_layer=norm_layer, **kwargs)
+        model = ArcFaceResNetLR(
+            BasicBlock,
+            [2, 2, 2, 2],
+            num_classes=num_classes,
+            norm_layer=norm_layer,
+            **kwargs,
+        )
     if fixed_embeddings:
         model.arcmarginprod.weight.requires_grad = False
     return model
 
+
 # Copied and modified from
 # https://github.com/pytorch/vision/issues/2391
 
-def batchnorm_to_groupnorm(net: Net):
 
+def batchnorm_to_groupnorm(net: Net):
     def get_layer(model, name):
         layer = model
         for attr in name.split("."):
@@ -327,22 +348,26 @@ def batchnorm_to_groupnorm(net: Net):
 
             set_layer(net, name, gn)
 
+
 # Copied and modified from
 # https://github.com/ChristofHenkel/kaggle-landmark-2021-1st-place/blob/034a7d8665bb4696981698348c9370f2d4e61e35/models/ch_mdl_dolg_efficientnet.py
 
+
 class ArcMarginProduct(nn.Module):
     r"""Implement of large margin arc distance: :
-        Args:
-            in_features: size of each input sample
-            out_features: size of each output sample
-            s: norm of input feature
-            m: margin
-            cos(theta + m)
-        """
+    Args:
+        in_features: size of each input sample
+        out_features: size of each output sample
+        s: norm of input feature
+        m: margin
+        cos(theta + m)
+    """
+
     def __init__(
         self,
         in_dims: int,
-        out_dims: int,):
+        out_dims: int,
+    ):
         super(ArcMarginProduct, self).__init__()
         self.weight = nn.Parameter(torch.FloatTensor(out_dims, in_dims))
         nn.init.xavier_uniform_(self.weight)
@@ -351,13 +376,14 @@ class ArcMarginProduct(nn.Module):
         cosine = F.linear(F.normalize(x), F.normalize(self.weight))
         return cosine
 
+
 class ArcFaceLoss(nn.modules.Module):
     def __init__(self, s: float = 45.0, m: float = 0.1, weight=None, reduction="mean") -> None:
         super().__init__()
 
         self.weight = weight
         self.reduction = reduction
-        
+
         self.criterion = nn.CrossEntropyLoss(reduction="none")
 
         self.s = s
@@ -371,13 +397,13 @@ class ArcFaceLoss(nn.modules.Module):
     def forward(self, logits, labels):
         logits = logits.float()
         cosine = logits
-        sine = torch.sqrt((1.0 - torch.pow(cosine, 2)).clip(1e-16,1))
+        sine = torch.sqrt((1.0 - torch.pow(cosine, 2)).clip(1e-16, 1))
 
-        phi = cosine*self.cos_m - sine * self.sin_m
-        phi = torch.where(cosine > self.th, phi, cosine-self.mm)
+        phi = cosine * self.cos_m - sine * self.sin_m
+        phi = torch.where(cosine > self.th, phi, cosine - self.mm)
 
         onehot = torch.zeros_like(cosine)
-        onehot.scatter_(1, labels.view(-1,1).long(), 1)
+        onehot.scatter_(1, labels.view(-1, 1).long(), 1)
         output = (onehot * phi) + ((1.0 - onehot) * cosine)
 
         s = self.s
@@ -389,27 +415,32 @@ class ArcFaceLoss(nn.modules.Module):
             loss = loss.mean()
         elif self.reduction == "sum":
             loss = loss.sum()
-        
+
         return loss
+
 
 class CosineContrastiveLoss(nn.modules.Module):
-    def __init__(self, nu: float = 0.9)->None:
+    def __init__(self, nu: float = 0.9) -> None:
         super().__init__()
         self.nu = nu
+
     def forward(self, x, labels):
-        loss = torch.pow(torch.max(torch.tensor(0.), self.nu-x),2).mean()
+        loss = torch.pow(torch.max(torch.tensor(0.0), self.nu - x), 2).mean()
         return loss
-        
+
 
 class SpreadoutRegularizer(nn.modules.Module):
-    def __init__(self, nu: float = 0.9)-> None:
+    def __init__(self, nu: float = 0.9) -> None:
         super().__init__()
         self.nu = nu
 
     def forward(self, w, out_dims):
         w = F.normalize(w)
         loss = 0.0
-        for i in range(out_dims-1):
-            for j in range(i+1, out_dims):
-                loss += torch.pow(torch.max(torch.tensor(0.), self.nu - 1 + torch.dot(w[i,:], w[j,:])),2)
+        for i in range(out_dims - 1):
+            for j in range(i + 1, out_dims):
+                loss += torch.pow(
+                    torch.max(torch.tensor(0.0), self.nu - 1 + torch.dot(w[i, :], w[j, :])),
+                    2,
+                )
         return loss

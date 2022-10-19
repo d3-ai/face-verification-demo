@@ -1,31 +1,38 @@
-from logging import WARNING
-from typing import Callable, Dict, List, Optional, Tuple, Union
-
-import numpy as np
-
-from common import (
+# Flower API
+from flwr.common.logger import log
+from flwr.common import (
+    parameters_to_ndarrays,
+    ndarrays_to_parameters,
     FitIns,
     FitRes,
-    MetricsAggregationFn,
+    Parameters,
     NDArrays,
     NDArray,
-    Parameters,
     Scalar,
-    ndarrays_to_parameters,
-    parameters_to_ndarrays,
+    MetricsAggregationFn,
 )
-from flwr.common.logger import log
-from server_app.client_manager import ClientManager
-from server_app.client_proxy import ClientProxy
+from flwr.server.client_proxy import ClientProxy
+from flwr.server.client_manager import ClientManager
+from flwr.server.strategy import FedAvg
 
-from .aggregate import aggregate_and_spreadout, weighted_loss_avg
-from .fedavg import FedAvg
+# User-defined API
+from models.metric_learning import SpreadoutRegularizer
+
+# misc API
+from logging import WARNING
+import torch
+import torch.nn.functional as F
+import numpy as np
+from functools import reduce
+from typing import Callable, Dict, List, Optional, Tuple, Union
+
 
 class FedAwS(FedAvg):
     """
     Federated Learning with Only Positive Labels [F. X. Yu et al. ICML 2020]
     Proposed strategy: FedAwS (Federated Averaging with Spreadout)
     """
+
     # pylint: disable=too-many-arguments,too-many-instance-attributes
     def __init__(
         self,
@@ -50,37 +57,11 @@ class FedAwS(FedAvg):
         evaluate_metrics_aggregation_fn: Optional[MetricsAggregationFn] = None,
         nu: Optional[float] = 0.9,
         eta: Optional[float] = 0.1,
-        lam: Optional[float] = 0.1,) -> None:
+        lam: Optional[float] = 0.1,
+    ) -> None:
         """Federated learning strategy using Spreadout on server-side.
         Implementation based on http://proceedings.mlr.press/v119/yu20f/yu20f.pdf
         Args:
-            fraction_fit (float, optional): Fraction of clients used during
-                training. Defaults to 0.1.
-            fraction_evaluate (float, optional): Fraction of clients used during
-                validation. Defaults to 0.1.
-            min_fit_clients (int, optional): Minimum number of clients used
-                during training. Defaults to 2.
-            min_evaluate_clients (int, optional): Minimum number of clients used
-                during validation. Defaults to 2.
-            min_available_clients (int, optional): Minimum number of total
-                clients in the system. Defaults to 2.
-            evaluate_fn : Optional[
-                Callable[
-                    [int, NDArrays, Dict[str, Scalar]],
-                    Optional[Tuple[float, Dict[str, Scalar]]]
-                ]
-            ]: Function used for validation. Defaults to None.
-            on_fit_config_fn (Callable[[int], Dict[str, str]], optional):
-                Function used to configure training. Defaults to None.
-            on_evaluate_config_fn (Callable[[int], Dict[str, str]], optional):
-                Function used to configure validation. Defaults to None.
-            accept_failures (bool, optional): Whether or not accept rounds
-                containing failures. Defaults to True.
-            initial_parameters (Parameters): Initial set of parameters from the server.
-            fit_metrics_aggregation_fn: Optional[MetricsAggregationFn]
-                Metrics aggregation function, optional.
-            evaluate_metrics_aggregation_fn: Optional[MetricsAggregationFn]
-                Metrics aggregation function, optional.
             nu (float, optional): Server-side margin parameter. Default to 0.9.
             eta (float, optional): Client-side learning rate. Defaults to 1e-1.
             lambda (float, optional): Server-side learning rate. Defaults to 1e-1.
@@ -103,30 +84,23 @@ class FedAwS(FedAvg):
         self.nu = nu
         self.eta = eta
         self.lam = lam
-        """
-        self.embeddings: C x d tensors comprising of client class embeddings.
-        """
         self.initial_embeddings = initial_embeddings
         self.embeddings_dict = {}
 
     def __repr__(self) -> str:
-        rep = f"FedAdam(accept_failures={self.accept_failures})"
+        rep = f"FedAwS(accept_failures={self.accept_failures})"
         return rep
 
     def configure_fit(
         self, server_round: int, parameters: Parameters, client_manager: ClientManager
-    )-> List[Tuple[ClientProxy, FitIns]]:
+    ) -> List[Tuple[ClientProxy, FitIns]]:
         config = {}
         if self.on_fit_config_fn is not None:
             config = self.on_fit_config_fn(server_round)
 
         # Sample clients
-        sample_size, min_num_clients = self.num_fit_clients(
-            client_manager.num_available()
-        )
-        clients = client_manager.sample(
-            num_clients=sample_size, min_num_clients=min_num_clients
-        )
+        sample_size, min_num_clients = self.num_fit_clients(client_manager.num_available())
+        clients = client_manager.sample(num_clients=sample_size, min_num_clients=min_num_clients)
         weights: NDArrays = parameters_to_ndarrays(parameters)
         parameters_dict: Dict[str, Parameters] = {}
         if not any(self.embeddings_dict):
@@ -142,16 +116,16 @@ class FedAwS(FedAvg):
         self,
         server_round: int,
         results: List[Tuple[ClientProxy, FitRes]],
-        failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]]
+        failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]],
     ) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
         """
         Aggregate fit results as follows:
-            Feature extracter: weighted 
+            Feature extracter: weighted
             Classifier Matrix:
         """
-        if not results: 
+        if not results:
             return None, {}
-        
+
         if not self.accept_failures and failures:
             return None, {}
 
@@ -161,7 +135,9 @@ class FedAwS(FedAvg):
             for client, fit_res in results
         ]
 
-        parameters_aggregated, self.embeddings_dict = aggregate_and_spreadout(weights_results, num_clients=len(weights_results), num_features=512, nu=self.nu, lr=self.eta*self.lam)
+        parameters_aggregated, self.embeddings_dict = aggregate_and_spreadout(
+            weights_results, num_clients=len(weights_results), num_features=512, nu=self.nu, lr=self.eta * self.lam
+        )
 
         metrics_aggregated = {}
         if self.fit_metrics_aggregation_fn:
@@ -171,3 +147,47 @@ class FedAwS(FedAvg):
             log(WARNING, "No fit_metrics_aggregation_fn provided")
 
         return ndarrays_to_parameters(parameters_aggregated), metrics_aggregated
+
+
+def aggregate_and_spreadout(
+    results: List[Tuple[NDArrays, int, str]], num_clients: int, num_features: int, nu: float, lr: float
+) -> Tuple[NDArrays, Dict[str, NDArray]]:
+    """Compute weighted average."""
+    # Create a classification matrix from class embeddings
+    embeddings: NDArray = np.zeros((num_clients, num_features))
+    cid_dict: Dict[str, int] = {}
+    embedding_dict: Dict[str, NDArray] = {}
+
+    for idx, res in enumerate(results):
+        weights, _, cid = res
+        cid_dict[cid] = idx
+        if "ipv4" in cid:
+            embeddings[idx, :] = weights[-1]
+        else:
+            embeddings[int(cid), :] = weights[-1]
+
+    embeddings = torch.nn.Parameter(torch.tensor(embeddings))
+    regularizer = SpreadoutRegularizer(nu=nu)
+    optimizer = torch.optim.SGD([embeddings], lr=lr)
+    optimizer.zero_grad()
+    loss = regularizer(embeddings, out_dims=num_clients)
+    print(loss)
+    loss.backward()
+    optimizer.step()
+    embeddings = F.normalize(embeddings).detach().cpu().numpy()
+
+    # Calculate the total number of examples used during training
+    num_examples_total = sum([num_examples for _, num_examples, _ in results])
+
+    # Create a list of weights, each multiplied by the related number of examples
+    feature_weights = [[layer * num_examples for layer in weights[:-1]] for weights, num_examples, _ in results]
+
+    # Compute average weights of each layer
+    weights_prime: NDArrays = [
+        reduce(np.add, layer_updates) / num_examples_total for layer_updates in zip(*feature_weights)
+    ]
+    weights_prime.append(embeddings)
+    for cid, idx in cid_dict.items():
+        embedding_dict[cid] = embeddings[np.newaxis, idx, :]
+
+    return weights_prime, embedding_dict

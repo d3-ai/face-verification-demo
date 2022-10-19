@@ -59,7 +59,7 @@ RUN pipenv install https://download.pytorch.org/whl/cu113/torch-1.12.0%2Bcu113-c
 pipenv install torchvision https://download.pytorch.org/whl/cu113/torchvision-0.13.0%2Bcu113-cp38-cp38-linux_x86_64.whl --skip-lock && \
 pipenv install flwr==1.0.0 --skip-lock && \
 pipenv install tqdm --skip-lock && \
-pipenv install ray==1.3.0 --skip-lock && \
+pipenv install ray==1.11.1 --skip-lock && \
 pipenv install ray[tune] --skip-lock && \
 pipenv install pandas --skip-lock && \
 pipenv install optuna --skip-lock && \

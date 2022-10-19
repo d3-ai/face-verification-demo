@@ -1,3 +1,4 @@
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 # Face Verification Tutorial
 In this project, a face verification model is trained on CelebA and wild face images (e.g. taken with a USB camera) using [Flower](https://github.com/adap/flower) and PyTorch. Face verification can determine whether people are really who they say they are based on the obtained Cosine similarity. 
 

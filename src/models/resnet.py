@@ -1,24 +1,13 @@
+from typing import Any, Callable, List, Optional, Tuple, Type, Union
+
 import torch
 import torch.nn as nn
 from torch import Tensor
+from torchvision.models.resnet import BasicBlock, Bottleneck, conv1x1
 
-from torchvision.models.resnet import (
-    conv1x1,
-    BasicBlock,
-    Bottleneck,
-)
-from typing import (
-    Tuple,
-    Type,
-    Union,
-    List,
-    Optional,
-    Callable,
-    Any
-)
 try:
     from torchvision.utils import _log_api_usage_once
-except:
+except ImportError:
     pass
 
 from models.base_model import Net
@@ -27,6 +16,8 @@ from models.base_model import Net
 ResNet: ResNet from torchvision models
 ResNetLR: ResNet for low resolution image dataset.
 """
+
+
 class ResNet(Net):
     def __init__(
         self,
@@ -109,7 +100,14 @@ class ResNet(Net):
         layers = []
         layers.append(
             block(
-                self.inplanes, planes, stride, downsample, self.groups, self.base_width, previous_dilation, norm_layer
+                self.inplanes,
+                planes,
+                stride,
+                downsample,
+                self.groups,
+                self.base_width,
+                previous_dilation,
+                norm_layer,
             )
         )
         self.inplanes = planes * block.expansion
@@ -147,6 +145,7 @@ class ResNet(Net):
 
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
+
 
 class ResNetLR(Net):
     def __init__(
@@ -229,7 +228,14 @@ class ResNetLR(Net):
         layers = []
         layers.append(
             block(
-                self.inplanes, planes, stride, downsample, self.groups, self.base_width, previous_dilation, norm_layer
+                self.inplanes,
+                planes,
+                stride,
+                downsample,
+                self.groups,
+                self.base_width,
+                previous_dilation,
+                norm_layer,
             )
         )
         self.inplanes = planes * block.expansion
@@ -267,16 +273,31 @@ class ResNetLR(Net):
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
 
+
 def resnet18(
     input_spec: Tuple[int, int, int],
     num_classes: int,
-    norm_layer: Optional[Callable[...,nn.Module]] = None,
-    **kwargs: Any,) -> Union[ResNet, ResNetLR]:
+    norm_layer: Optional[Callable[..., nn.Module]] = None,
+    **kwargs: Any,
+) -> Union[ResNet, ResNetLR]:
     if input_spec[1] >= 224:
-        model = ResNet(BasicBlock, [2,2,2,2], num_classes=num_classes, norm_layer=norm_layer, **kwargs)
+        model = ResNet(
+            BasicBlock,
+            [2, 2, 2, 2],
+            num_classes=num_classes,
+            norm_layer=norm_layer,
+            **kwargs,
+        )
     else:
-        model = ResNetLR(BasicBlock, [2,2,2,2], num_classes=num_classes, norm_layer=norm_layer, **kwargs)
+        model = ResNetLR(
+            BasicBlock,
+            [2, 2, 2, 2],
+            num_classes=num_classes,
+            norm_layer=norm_layer,
+            **kwargs,
+        )
     return model
+
 
 def get_layer(model, name):
     layer = model
@@ -284,22 +305,24 @@ def get_layer(model, name):
         layer = getattr(layer, attr)
     return layer
 
+
 def set_layer(model, name, layer):
     try:
-        attrs, name = name.rsplit(".",1)
+        attrs, name = name.rsplit(".", 1)
         model = get_layer(model, attrs)
     except ValueError:
         pass
     setattr(model, name, layer)
 
+
 if __name__ == "__main__":
-    net = resnet18(input_spec=(3,32,32), num_classes=10)
+    net = resnet18(input_spec=(3, 32, 32), num_classes=10)
     print(net)
     for name, module in net.named_modules():
         if isinstance(module, nn.BatchNorm2d):
             bn = get_layer(net, name)
             gn = nn.GroupNorm(2, bn.num_features)
-            print("Swapping {} with {}".format(bn,gn))
+            print("Swapping {} with {}".format(bn, gn))
 
-            set_layer(net, name,gn)
+            set_layer(net, name, gn)
     print(net)

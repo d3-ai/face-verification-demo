@@ -134,9 +134,7 @@ class GRPCBridge:
 
         # Read res_wrapper and transition to AWAITING_INS_WRAPPER
         with self._cv:
-            self._cv.wait_for(
-                lambda: self._status in [Status.CLOSED, Status.RES_WRAPPER_AVAILABLE]
-            )
+            self._cv.wait_for(lambda: self._status in [Status.CLOSED, Status.RES_WRAPPER_AVAILABLE])
 
             self._raise_if_closed()
             res_wrapper = self._res_wrapper  # Read
@@ -152,10 +150,7 @@ class GRPCBridge:
         """Return iterator over ins_wrapper objects."""
         while not self._is_closed():
             with self._cv:
-                self._cv.wait_for(
-                    lambda: self._status
-                    in [Status.CLOSED, Status.INS_WRAPPER_AVAILABLE]
-                )
+                self._cv.wait_for(lambda: self._status in [Status.CLOSED, Status.INS_WRAPPER_AVAILABLE])
 
                 self._raise_if_closed()
 

@@ -4,20 +4,20 @@
 from typing import Callable, Dict, Optional, cast
 
 import ray
-from common import (
-    GetPropertiesIns,
-    GetPropertiesRes,
-    GetParametersIns,
-    GetParametersRes,
-    FitIns,
-    FitRes,
+from flwr.client import Client, ClientLike, to_client
+from flwr.common import (
+    DisconnectRes,
     EvaluateIns,
     EvaluateRes,
+    FitIns,
+    FitRes,
+    GetParametersIns,
+    GetParametersRes,
+    GetPropertiesIns,
+    GetPropertiesRes,
     ReconnectIns,
-    DisconnectRes,
 )
-from client_app import Client, ClientLike, to_client
-from server_app.client_proxy import ClientProxy
+from flwr.server.client_proxy import ClientProxy
 
 ClientFn = Callable[[str], ClientLike]
 
@@ -30,9 +30,7 @@ class RayClientProxy(ClientProxy):
         self.client_fn = client_fn
         self.resources = resources
 
-    def get_properties(
-        self, ins: GetPropertiesIns, timeout: Optional[float]
-    ) -> GetPropertiesRes:
+    def get_properties(self, ins: GetPropertiesIns, timeout: Optional[float]) -> GetPropertiesRes:
         """Returns client's properties."""
         future_get_properties_res = launch_and_get_properties.options(  # type: ignore
             **self.resources,
@@ -43,9 +41,7 @@ class RayClientProxy(ClientProxy):
             res,
         )
 
-    def get_parameters(
-        self, ins: GetParametersIns, timeout: Optional[float]
-    ) -> GetParametersRes:
+    def get_parameters(self, ins: GetParametersIns, timeout: Optional[float]) -> GetParametersRes:
         """Return the current local model parameters."""
         future_paramseters_res = launch_and_get_parameters.options(  # type: ignore
             **self.resources,
@@ -67,9 +63,7 @@ class RayClientProxy(ClientProxy):
             res,
         )
 
-    def evaluate(
-        self, ins: EvaluateIns, timeout: Optional[float]
-    ) -> EvaluateRes:
+    def evaluate(self, ins: EvaluateIns, timeout: Optional[float]) -> EvaluateRes:
         """Evaluate model parameters on the locally held dataset."""
         future_evaluate_res = launch_and_evaluate.options(  # type: ignore
             **self.resources,
@@ -80,44 +74,34 @@ class RayClientProxy(ClientProxy):
             res,
         )
 
-    def reconnect(
-        self, ins: ReconnectIns, timeout: Optional[float]
-    ) -> DisconnectRes:
+    def reconnect(self, ins: ReconnectIns, timeout: Optional[float]) -> DisconnectRes:
         """Disconnect and (optionally) reconnect later."""
         return DisconnectRes(reason="")  # Nothing to do here (yet)
 
 
 @ray.remote
-def launch_and_get_properties(
-    client_fn: ClientFn, cid: str, get_properties_ins: GetPropertiesIns
-) -> GetPropertiesRes:
+def launch_and_get_properties(client_fn: ClientFn, cid: str, get_properties_ins: GetPropertiesIns) -> GetPropertiesRes:
     """Exectue get_properties remotely."""
     client: Client = _create_client(client_fn, cid)
     return client.get_properties(get_properties_ins)
 
 
 @ray.remote
-def launch_and_get_parameters(
-    client_fn: ClientFn, cid: str, get_parameters_ins: GetParametersIns
-) -> GetParametersRes:
+def launch_and_get_parameters(client_fn: ClientFn, cid: str, get_parameters_ins: GetParametersIns) -> GetParametersRes:
     """Exectue get_parameters remotely."""
     client: Client = _create_client(client_fn, cid)
     return client.get_parameters(get_parameters_ins)
 
 
 @ray.remote(max_calls=1)
-def launch_and_fit(
-    client_fn: ClientFn, cid: str, fit_ins: FitIns
-) -> FitRes:
+def launch_and_fit(client_fn: ClientFn, cid: str, fit_ins: FitIns) -> FitRes:
     """Exectue fit remotely."""
     client: Client = _create_client(client_fn, cid)
     return client.fit(fit_ins)
 
 
 @ray.remote
-def launch_and_evaluate(
-    client_fn: ClientFn, cid: str, evaluate_ins: EvaluateIns
-) -> EvaluateRes:
+def launch_and_evaluate(client_fn: ClientFn, cid: str, evaluate_ins: EvaluateIns) -> EvaluateRes:
     """Exectue evaluate remotely."""
     client: Client = _create_client(client_fn, cid)
     return client.evaluate(evaluate_ins)

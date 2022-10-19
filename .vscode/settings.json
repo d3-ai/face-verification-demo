@@ -1,0 +1,22 @@
+{
+    "python.formatting.provider": "black",
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.lintOnSave": true,
+    "python.linting.flake8Enabled": true,
+    "python.linting.flake8Args": [
+        "--max-line-length=119",
+        "--ignore=E203, W503"
+    ],
+    "python.formatting.blackPath": "/Users/yama/.local/share/virtualenvs/Flower_mockup-yDh5BxSe/bin/black",
+    "python.formatting.blackArgs": [
+        "--max-line-length=119"
+    ],
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true
+    },
+    "[python]": {
+        "editor.defaultFormatter": null,
+    },
+}

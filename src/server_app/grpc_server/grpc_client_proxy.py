@@ -14,17 +14,17 @@
 # ==============================================================================
 """gRPC-based Flower ClientProxy implementation."""
 
+import timeit
+from logging import DEBUG
 from typing import Optional
 
-import common
-from common import serde
+import flwr.common as common
+from flwr.common import serde
+from flwr.common.logger import log
 from flwr.proto.transport_pb2 import ClientMessage, ServerMessage
-from server_app.client_proxy import ClientProxy
+from flwr.server.client_proxy import ClientProxy
 from server_app.grpc_server.grpc_bridge import GRPCBridge, InsWrapper, ResWrapper
 
-from logging import DEBUG
-from flwr.common.logger import log
-import timeit
 
 class GrpcClientProxy(ClientProxy):
     """Flower client proxy which delegates over the network using gRPC."""
@@ -51,9 +51,7 @@ class GrpcClientProxy(ClientProxy):
             )
         )
         client_msg: ClientMessage = res_wrapper.client_message
-        get_properties_res = serde.get_properties_res_from_proto(
-            client_msg.get_properties_res
-        )
+        get_properties_res = serde.get_properties_res_from_proto(client_msg.get_properties_res)
         return get_properties_res
 
     def get_parameters(
@@ -70,9 +68,7 @@ class GrpcClientProxy(ClientProxy):
             )
         )
         client_msg: ClientMessage = res_wrapper.client_message
-        get_parameters_res = serde.get_parameters_res_from_proto(
-            client_msg.get_parameters_res
-        )
+        get_parameters_res = serde.get_parameters_res_from_proto(client_msg.get_parameters_res)
         return get_parameters_res
 
     def fit(
@@ -89,7 +85,7 @@ class GrpcClientProxy(ClientProxy):
                 timeout=timeout,
             )
         )
-        total_time = timeit.default_timer()-start_time
+        total_time = timeit.default_timer() - start_time
         client_msg: ClientMessage = res_wrapper.client_message
         fit_res = serde.fit_res_from_proto(client_msg.fit_res)
         fit_res.metrics["total"] = total_time
@@ -129,4 +125,4 @@ class GrpcClientProxy(ClientProxy):
         )
         client_msg: ClientMessage = res_wrapper.client_message
         disconnect = serde.disconnect_res_from_proto(client_msg.disconnect_res)
-        return 
+        return disconnect

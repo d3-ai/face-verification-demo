@@ -1,14 +1,16 @@
-"""
-following code is borrowed from LEAF
-"""
 import json
-from pathlib import Path
 import os
-
-from torchvision.datasets.utils import download_file_from_google_drive
+from pathlib import Path
 from typing import Dict, List, Tuple
 
-TARGET_NAME = 'Eyeglasses'
+from torchvision.datasets.utils import download_file_from_google_drive
+
+TARGET_NAME = "Eyeglasses"
+"""
+The following code is copied and modified from LEAF
+https://github.com/TalwalkarLab/leaf/tree/master/data/celeba
+"""
+
 
 def get_metadata() -> Tuple[List[str], List[str]]:
     """
@@ -19,11 +21,12 @@ def get_metadata() -> Tuple[List[str], List[str]]:
         attributes[1] = '5_o_Clock_Shadow Arched_Eyebrows ...': attributes col
         attributes[i] = '00000${i-1}.jpg -1 1 1 ...': i>=2
     """
-    f_identities = open('./data/celeba/identity_CelebA.txt', 'r')
-    identities: List[str] = f_identities.read().split('\n')
-    f_attributes = open('./data/celeba/list_attr_celeba.txt', 'r')
-    attributes: List[str] = f_attributes.read().split('\n')
+    f_identities = open("./data/celeba/identity_CelebA.txt", "r")
+    identities: List[str] = f_identities.read().split("\n")
+    f_attributes = open("./data/celeba/list_attr_celeba.txt", "r")
+    attributes: List[str] = f_attributes.read().split("\n")
     return identities, attributes
+
 
 def get_celebrities_and_images(identities: List[str]) -> Dict[str, List[str]]:
     """
@@ -38,14 +41,15 @@ def get_celebrities_and_images(identities: List[str]) -> Dict[str, List[str]]:
         info: List[str] = line.split()
         if len(info) < 2:
             continue
-        image, celeb = info[0], info[1] # info[0]: '000001.jpg' info[1]: '2880'
+        image, celeb = info[0], info[1]  # info[0]: '000001.jpg' info[1]: '2880'
         if celeb not in all_celebs:
             all_celebs[celeb] = []
         all_celebs[celeb].append(image)
-    
-    good_celebs: Dict[str, List[str]] = {c: all_celebs[c] for c in all_celebs if len(all_celebs[c]) == 30} 
-    poor_celebs: Dict[str, List[str]] = {c: all_celebs[c] for c in all_celebs if len(all_celebs[c]) == 5} 
+
+    good_celebs: Dict[str, List[str]] = {c: all_celebs[c] for c in all_celebs if len(all_celebs[c]) == 30}
+    poor_celebs: Dict[str, List[str]] = {c: all_celebs[c] for c in all_celebs if len(all_celebs[c]) == 5}
     return good_celebs, poor_celebs
+
 
 def _get_celebrites_by_image(celebrities: Dict[str, List[str]]) -> Dict[str, str]:
     """
@@ -60,7 +64,10 @@ def _get_celebrites_by_image(celebrities: Dict[str, List[str]]) -> Dict[str, str
             good_images[img] = c
     return good_images
 
-def get_celebrities_and_target(celebrities: Dict[str, List[str]], attributes: List[str], attribute_name=TARGET_NAME)->Dict[str, List[int]]:
+
+def get_celebrities_and_target(
+    celebrities: Dict[str, List[str]], attributes: List[str], attribute_name=TARGET_NAME
+) -> Dict[str, List[int]]:
     col_name: str = attributes[1]
     col_idx: int = col_name.split().index(attribute_name)
     celeb_attributes: Dict[str, List[int]] = {}
@@ -81,35 +88,37 @@ def get_celebrities_and_target(celebrities: Dict[str, List[str]], attributes: Li
 
         if celeb not in celeb_attributes:
             celeb_attributes[celeb] = []
-        
+
         celeb_attributes[celeb].append(att)
     return celeb_attributes
 
-def build_json_format(celebrities: Dict[str, List[str]], targets): 
+
+def build_json_format(celebrities: Dict[str, List[str]], targets):
     all_data = {}
     celeb_keys = [c for c in celebrities]
     num_samples = [len(celebrities[c]) for c in celeb_keys]
-    data = {c: {'x': celebrities[c], 'y': targets[c]} for c in celebrities}
+    data = {c: {"x": celebrities[c], "y": targets[c]} for c in celebrities}
 
-    all_data['users'] = celeb_keys
-    all_data['num_samples'] = num_samples
-    all_data['user_data'] = data
+    all_data["users"] = celeb_keys
+    all_data["num_samples"] = num_samples
+    all_data["user_data"] = data
     return all_data
 
 
 def write_json(json_data, train: bool = True):
-    save_dir: str = os.path.join('./data/celeba/attrs/', TARGET_NAME)
+    save_dir: str = os.path.join("./data/celeba/attrs/", TARGET_NAME)
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
-    
+
     if train:
-        file_path: str = Path(save_dir) / 'train_data.json'
+        file_path: str = Path(save_dir) / "train_data.json"
     else:
-        file_path: str = Path(save_dir) / 'test_data.json'
-        
-    print('writing {}'.format(file_path))
-    with open(file_path, 'w') as outfile:
+        file_path: str = Path(save_dir) / "test_data.json"
+
+    print("writing {}".format(file_path))
+    with open(file_path, "w") as outfile:
         json.dump(json_data, outfile)
+
 
 def download():
     file_list = [
@@ -117,58 +126,79 @@ def download():
         # ("0B7EVK8r0v71pZjFTYXZWM3FlRnM", "00d2c5bc6d35e252742224ab0c1e8fcb", "img_align_celeba.zip"),
         # ("0B7EVK8r0v71pbWNEUjJKdDQ3dGc","b6cd7e93bc7a96c2dc33f819aa3ac651", "img_align_celeba_png.7z"),
         # ("0B7EVK8r0v71peklHb0pGdDl6R28", "b6cd7e93bc7a96c2dc33f819aa3ac651", "img_celeba.7z"),
-        ("0B7EVK8r0v71pblRyaVFSWGxPY0U", "75e246fa4810816ffd6ee81facbd244c", "list_attr_celeba.txt"),
-        ("1_ee_0u7vcNLOfNLegJRHmolfH5ICW-XS", "32bd1bd63d3c78cd57e08160ec5ed1e2", "identity_CelebA.txt"),
-        ("0B7EVK8r0v71pbThiMVRxWXZ4dU0", "00566efa6fedff7a56946cd1c10f1c16", "list_bbox_celeba.txt"),
-        ("0B7EVK8r0v71pd0FJY3Blby1HUTQ", "cc24ecafdb5b50baae59b03474781f8c", "list_landmarks_align_celeba.txt"),
+        (
+            "0B7EVK8r0v71pblRyaVFSWGxPY0U",
+            "75e246fa4810816ffd6ee81facbd244c",
+            "list_attr_celeba.txt",
+        ),
+        (
+            "1_ee_0u7vcNLOfNLegJRHmolfH5ICW-XS",
+            "32bd1bd63d3c78cd57e08160ec5ed1e2",
+            "identity_CelebA.txt",
+        ),
+        (
+            "0B7EVK8r0v71pbThiMVRxWXZ4dU0",
+            "00566efa6fedff7a56946cd1c10f1c16",
+            "list_bbox_celeba.txt",
+        ),
+        (
+            "0B7EVK8r0v71pd0FJY3Blby1HUTQ",
+            "cc24ecafdb5b50baae59b03474781f8c",
+            "list_landmarks_align_celeba.txt",
+        ),
         # ("0B7EVK8r0v71pTzJIdlJWdHczRlU", "063ee6ddb681f96bc9ca28c6febb9d1a", "list_landmarks_celeba.txt"),
-        ("0B7EVK8r0v71pY0NSMzRuSXJEVkk", "d32c9cbf5e040fd4025c592c306e6668", "list_eval_partition.txt"),
+        (
+            "0B7EVK8r0v71pY0NSMzRuSXJEVkk",
+            "d32c9cbf5e040fd4025c592c306e6668",
+            "list_eval_partition.txt",
+        ),
     ]
     for (file_id, md5, filename) in file_list:
         download_file_from_google_drive(file_id, "./data/celeba", filename, md5)
 
-def verification_partition(train: bool =True, target: str = 'large'):
+
+def verification_partition(train: bool = True, target: str = "large"):
     # download()
-    with open('./data/celeba/identity_CelebA.txt', 'r') as f:
-        identities: List[str] = f.read().split('\n')
-    
+    with open("./data/celeba/identity_CelebA.txt", "r") as f:
+        identities: List[str] = f.read().split("\n")
+
     celebrities, _ = get_celebrities_and_images(identities)
     print(len(celebrities))
 
     celeb_keys = [c for c in celebrities]
-    if target == 'small':
+    if target == "small":
         celeb_keys = celeb_keys[:10]
-    elif target == 'medium':
+    elif target == "medium":
         celeb_keys = celeb_keys[:100]
-    elif target == 'large':
+    elif target == "large":
         celeb_keys = celeb_keys[10:1010]
     else:
         raise NotImplementedError(f"{target} is not supported")
-    
-    if train:
-        data = {c: {'x': celebrities[c][:24], 'y': [i for _ in range(24)]} for i, c in enumerate(celeb_keys)}
-        num_samples = [len(data[c]['x']) for c in celeb_keys]
-    else:
-        data = {c: {'x': celebrities[c][24:], 'y': [i for _ in range(6)]} for i, c in enumerate(celeb_keys)}
-        num_samples = [len(data[c]['x']) for c in celeb_keys]
-    all_data = {}
-    all_data['users'] = celeb_keys
-    all_data['num_samples'] = num_samples
-    all_data['user_data'] = data
 
-    save_dir: str = os.path.join('./data/celeba/identities/',target)
+    if train:
+        data = {c: {"x": celebrities[c][:24], "y": [i for _ in range(24)]} for i, c in enumerate(celeb_keys)}
+        num_samples = [len(data[c]["x"]) for c in celeb_keys]
+    else:
+        data = {c: {"x": celebrities[c][24:], "y": [i for _ in range(6)]} for i, c in enumerate(celeb_keys)}
+        num_samples = [len(data[c]["x"]) for c in celeb_keys]
+    all_data = {}
+    all_data["users"] = celeb_keys
+    all_data["num_samples"] = num_samples
+    all_data["user_data"] = data
+
+    save_dir: str = os.path.join("./data/celeba/identities/", target)
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
-    
+
     if train:
-        file_path: str = Path(save_dir) / 'train_data.json'
+        file_path: str = Path(save_dir) / "train_data.json"
     else:
-        file_path: str = Path(save_dir) / 'test_data.json'
-        
-    print('writing {}'.format(file_path))
-    with open(file_path, 'w') as outfile:
+        file_path: str = Path(save_dir) / "test_data.json"
+
+    print("writing {}".format(file_path))
+    with open(file_path, "w") as outfile:
         json.dump(all_data, outfile)
-    
+
 
 def main():
     download()
@@ -181,6 +211,7 @@ def main():
 
     write_json(train_json_data, train=True)
     write_json(test_json_data, train=False)
+
 
 if __name__ == "__main__":
     verification_partition(False)

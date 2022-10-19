@@ -19,11 +19,11 @@ Relevant knowledge for reading this modules code:
 from typing import Callable, Iterator
 
 import grpc
-from iterators import TimeoutIterator
-
 from flwr.proto import transport_pb2_grpc
 from flwr.proto.transport_pb2 import ClientMessage, ServerMessage
-from server_app.client_manager import ClientManager
+from flwr.server.client_manager import ClientManager
+from iterators import TimeoutIterator
+
 from .grpc_bridge import GRPCBridge, InsWrapper, ResWrapper
 from .grpc_client_proxy import GrpcClientProxy
 
@@ -64,9 +64,7 @@ class FlowerServiceServicer(transport_pb2_grpc.FlowerServiceServicer):
         self,
         client_manager: ClientManager,
         grpc_bridge_factory: Callable[[], GRPCBridge] = default_bridge_factory,
-        grpc_client_factory: Callable[
-            [str, GRPCBridge], GrpcClientProxy
-        ] = default_grpc_client_factory,
+        grpc_client_factory: Callable[[str, GRPCBridge], GrpcClientProxy] = default_grpc_client_factory,
     ) -> None:
         self.client_manager: ClientManager = client_manager
         self.grpc_bridge_factory = grpc_bridge_factory
@@ -92,9 +90,7 @@ class FlowerServiceServicer(transport_pb2_grpc.FlowerServiceServicer):
 
         if is_success:
             # Get iterators
-            client_message_iterator = TimeoutIterator(
-                iterator=request_iterator, reset_on_next=True
-            )
+            client_message_iterator = TimeoutIterator(iterator=request_iterator, reset_on_next=True)
             ins_wrapper_iterator = bridge.ins_wrapper_iterator()
 
             # All messages will be pushed to client bridge directly
@@ -128,8 +124,6 @@ class FlowerServiceServicer(transport_pb2_grpc.FlowerServiceServicer):
                         # this execution context by raising an exception.
                         return
 
-                    bridge.set_res_wrapper(
-                        res_wrapper=ResWrapper(client_message=client_message)
-                    )
+                    bridge.set_res_wrapper(res_wrapper=ResWrapper(client_message=client_message))
                 except StopIteration:
                     break

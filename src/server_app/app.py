@@ -1,22 +1,16 @@
-"""Flower server app."""
-
-
 import time
 from dataclasses import dataclass
 from logging import INFO, WARN
+from typing import Optional, Tuple
 
+from flwr.common import GRPC_MAX_MESSAGE_LENGTH, Parameters
 from flwr.common.logger import log
+from flwr.server import Server
+from flwr.server.client_manager import ClientManager, SimpleClientManager
 from flwr.server.history import History
 from flwr.server.strategy import FedAvg, Strategy
 
-from common.typing import Parameters
 from .grpc_server.grpc_server import start_grpc_server
-
-# typing
-from common import GRPC_MAX_MESSAGE_LENGTH
-from .client_manager import ClientManager, SimpleClientManager
-from .server import Server
-from typing import Optional, Tuple
 
 DEFAULT_SERVER_ADDRESS = "[::]:8080"
 
@@ -30,6 +24,7 @@ class ServerConfig:
 
     num_rounds: int = 1
     round_timeout: Optional[float] = None
+
 
 def start_server(  # pylint: disable=too-many-arguments
     *,
@@ -128,6 +123,7 @@ def start_server(  # pylint: disable=too-many-arguments
     grpc_server.stop(grace=1)
 
     return hist, params
+
 
 def _init_defaults(
     server: Optional[Server],

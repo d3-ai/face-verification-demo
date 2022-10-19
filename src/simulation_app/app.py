@@ -1,19 +1,16 @@
-"""Flower simulation app."""
-
-
 import sys
 from logging import ERROR, INFO
 from typing import Any, Callable, Dict, List, Optional
 
 import ray
-
-from client_app.client import Client
+from flwr.client import Client
 from flwr.common.logger import log
-from server_app.server import Server
+from flwr.server import Server
+from flwr.server.client_manager import ClientManager
+from flwr.server.history import History
+from flwr.server.strategy import Strategy
 from server_app.app import ServerConfig, _fl, _init_defaults
-from server_app.client_manager import ClientManager
-from server_app.history import History
-from server_app.strategy.strategy import Strategy
+
 from .ray_transport.ray_client_proxy import RayClientProxy
 
 INVALID_ARGUMENTS_START_SIMULATION = """

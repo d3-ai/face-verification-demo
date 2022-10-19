@@ -1,30 +1,23 @@
 import timeit
-from logging import DEBUG, INFO
-from flwr.common.logger import log
-
-
-# typing
-from .client_manager import ClientManager
-from .client_proxy import ClientProxy
-from .server import Server
-from .strategy.strategy import Strategy
-from .history import History
-from common.typing import Parameters, Scalar, FitRes, FitIns, Code
-from typing import Optional, Tuple, Union, Dict, List
+from logging import INFO
+from typing import Optional
 
 import wandb
+from flwr.common.logger import log
+from flwr.server import Server
+from flwr.server.client_manager import ClientManager
+from flwr.server.history import History
+from flwr.server.strategy import Strategy
 
-FitResultsAndFailures = Tuple[
-    List[Tuple[ClientProxy, FitRes]],
-    List[Union[Tuple[ClientProxy, FitRes], BaseException]],
-]
 
 class RayTuneServer(Server):
     """
     Flower server implementation for parameter search using ray.tune and wandb.
     """
+
     def __init__(self, client_manager: ClientManager, strategy: Optional[Strategy] = None) -> None:
-        super(RayTuneServer, self).__init__(client_manager=client_manager,strategy=strategy)
+        super(RayTuneServer, self).__init__(client_manager=client_manager, strategy=strategy)
+
     # @wandb_mixin
     def fit(self, num_rounds: int, timeout: Optional[float]):
         history = History()
@@ -34,11 +27,11 @@ class RayTuneServer(Server):
         log(INFO, "Evaluating initial parameters")
         res = self.strategy.evaluate(0, parameters=self.parameters)
         if res is not None:
-            log(INFO,"initial parameters (loss, other metrics): %s, %s",res[0], res[1])
+            log(INFO, "initial parameters (loss, other metrics): %s, %s", res[0], res[1])
             history.add_loss_centralized(server_round=0, loss=res[0])
             history.add_metrics_centralized(server_round=0, metrics=res[1])
             wandb.log({"test_loss": res[0], "test_acc": res[1]["accuracy"], "Aggregation round": 0})
-        
+
         log(INFO, "FL starting")
         start_time = timeit.default_timer()
 
@@ -62,10 +55,10 @@ class RayTuneServer(Server):
                     timeit.default_timer() - start_time,
                 )
                 history.add_loss_centralized(server_round=current_round, loss=loss_cen)
-                history.add_metrics_centralized(
-                    server_round=current_round, metrics=metrics_cen
+                history.add_metrics_centralized(server_round=current_round, metrics=metrics_cen)
+                wandb.log(
+                    {"test_loss": loss_cen, "test_acc": metrics_cen["accuracy"], "Aggregation round": current_round}
                 )
-                wandb.log({"test_loss": loss_cen, "test_acc": metrics_cen["accuracy"], "Aggregation round": current_round})
 
         # Evaluate model on a sample of available clients
         # res_fed = self.evaluate_round(server_round=-1, timeout=timeout)

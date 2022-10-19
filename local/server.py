@@ -1,32 +1,39 @@
 import argparse
-import warnings
 import gc
-
 import random
+import warnings
+from typing import Callable, Dict, Optional, Tuple
+
 import numpy as np
 import torch
-from torch.utils.data import DataLoader
-
+from flwr.common import NDArrays, Parameters, Scalar, ndarrays_to_parameters
 from flwr.server.strategy import FedAvg
-from server_app.app import ServerConfig, start_server
-
-
-from driver import test
 from models.base_model import Net
-from utils.utils_dataset import load_centralized_dataset, configure_dataset
+from models.driver import test
+from server_app.app import ServerConfig, start_server
+from torch.utils.data import DataLoader
+from utils.utils_dataset import configure_dataset, load_centralized_dataset
 from utils.utils_model import load_model
-from common import ndarrays_to_parameters
 
-from common import Parameters, Scalar, NDArrays
-from typing import Dict, Optional, Tuple, Callable
 warnings.filterwarnings("ignore")
 
 parser = argparse.ArgumentParser("Flower Server")
 parser.add_argument("--server_address", type=str, required=True, default="0.0.0.0:8080", help="server ipaddress:post")
-parser.add_argument("--dataset", type=str, required=True, choices=["CIFAR10", "CelebA"], help="FL config: dataset name")
-parser.add_argument("--target", type=str, required=True, help="FL config: target partitions for common dataset target attributes for celeba")
-parser.add_argument("--model", type=str, required=True, choices=["tinyCNN", "ResNet18", "GNResNet18"], help="FL config: model name")
-parser.add_argument("--pretrained", type=str, required=False, choices=["IMAGENET1K_V1", None], default=None, help="pretraing recipe")
+parser.add_argument(
+    "--dataset", type=str, required=True, choices=["CIFAR10", "CelebA"], help="FL config: dataset name"
+)
+parser.add_argument(
+    "--target",
+    type=str,
+    required=True,
+    help="FL config: target partitions for common dataset target attributes for celeba",
+)
+parser.add_argument(
+    "--model", type=str, required=True, choices=["tinyCNN", "ResNet18", "GNResNet18"], help="FL config: model name"
+)
+parser.add_argument(
+    "--pretrained", type=str, required=False, choices=["IMAGENET1K_V1", None], default=None, help="pretraing recipe"
+)
 parser.add_argument("--num_rounds", type=int, required=False, default=5, help="FL config: aggregation rounds")
 parser.add_argument("--num_clients", type=int, required=False, default=4, help="FL config: number of clients")
 parser.add_argument("--local_epochs", type=int, required=False, default=5, help="Client fit config: local epochs")
@@ -36,10 +43,12 @@ parser.add_argument("--momentum", type=float, required=False, default=0.0, help=
 parser.add_argument("--weight_decay", type=float, required=False, default=0.0, help="weigh_decay")
 parser.add_argument("--seed", type=int, required=False, default=1234, help="Random seed")
 
+
 def set_seed(seed: int):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
+
 
 def main():
     """Load model for
@@ -50,42 +59,49 @@ def main():
     args = parser.parse_args()
     print(args)
     set_seed(args.seed)
-    
+
     dataset_config = configure_dataset(dataset_name=args.dataset, target=args.target)
 
-    net: Net = load_model(name=args.model, input_spec=dataset_config["input_spec"], out_dims=dataset_config["out_dims"], pretrained=args.pretrained)
+    net: Net = load_model(
+        name=args.model,
+        input_spec=dataset_config["input_spec"],
+        out_dims=dataset_config["out_dims"],
+        pretrained=args.pretrained,
+    )
     init_parameters: Parameters = ndarrays_to_parameters(net.get_weights())
 
-    def fit_config(server_rnd: int)-> Dict[str, Scalar]:
+    def fit_config(server_rnd: int) -> Dict[str, Scalar]:
         config = {
             "local_epochs": args.local_epochs,
             "batch_size": args.batch_size,
             "weight_decay": args.weight_decay,
             "momentum": args.momentum,
             "lr": args.lr,
-            "weight_decay": args.weight_decay,
         }
         return config
-    
+
     server_config = ServerConfig(num_rounds=args.num_rounds)
-    
-    def eval_config(server_rnd: int)-> Dict[str, Scalar]:
+
+    def eval_config(server_rnd: int) -> Dict[str, Scalar]:
         config = {
             "batch_size": args.batch_size,
         }
         return config
 
-
-    def get_eval_fn(model: Net, dataset: str, target: str)-> Callable:
+    def get_eval_fn(model: Net, dataset: str, target: str) -> Callable:
         testset = load_centralized_dataset(dataset_name=dataset, train=False, target=target)
         testloader = DataLoader(testset, batch_size=1000)
-        def evaluate(server_round: int, weights: NDArrays, config: Dict[str, Scalar])-> Optional[Tuple[float, Dict[str, Scalar]]]:
+
+        def evaluate(
+            server_round: int, weights: NDArrays, config: Dict[str, Scalar]
+        ) -> Optional[Tuple[float, Dict[str, Scalar]]]:
             model.set_weights(weights)
             device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
             results = test(model, testloader, device=device)
             torch.cuda.empty_cache()
             gc.collect()
-            return results['loss'], {"accuracy": results['acc']}
+            return results["loss"], {"accuracy": results["acc"]}
+
         return evaluate
 
     server_config = ServerConfig(num_rounds=args.num_rounds)
