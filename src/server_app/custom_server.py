@@ -169,7 +169,10 @@ def fit_clients(
 
 def fit_client(client: ClientProxy, ins: FitIns, timeout: Optional[float]) -> Tuple[ClientProxy, FitRes]:
     """Refine parameters on a single client."""
+    start_time = timeit.default_timer()
     fit_res = client.fit(ins, timeout=timeout)
+    total_time = timeit.default_timer() - start_time
+    fit_res.metrics["total"] = total_time
     return client, fit_res
 
 

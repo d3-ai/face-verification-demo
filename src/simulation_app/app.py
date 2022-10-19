@@ -6,10 +6,10 @@ import ray
 from flwr.client import Client
 from flwr.common.logger import log
 from flwr.server import Server
+from flwr.server.app import ServerConfig, _fl, _init_defaults
 from flwr.server.client_manager import ClientManager
 from flwr.server.history import History
 from flwr.server.strategy import Strategy
-from server_app.app import ServerConfig, _fl, _init_defaults
 
 from .ray_transport.ray_client_proxy import RayClientProxy
 
@@ -165,9 +165,9 @@ def start_simulation(  # pylint: disable=too-many-arguments
         initialized_server.client_manager().register(client=client_proxy)
 
     # Start training
-    hist, params = _fl(
+    hist = _fl(
         server=initialized_server,
         config=initialized_config,
     )
 
-    return hist, params
+    return hist

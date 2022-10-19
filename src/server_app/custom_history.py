@@ -1,7 +1,7 @@
 # Flwoer API
 from typing import Dict, List, Tuple
 
-from common.typing import Scalar
+from flwr.common.typing import Scalar
 from flwr.server.history import History
 
 

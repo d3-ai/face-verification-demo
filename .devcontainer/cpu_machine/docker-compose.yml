@@ -1,12 +1,12 @@
 version: "3.8"
 
-services: 
+services:
   flower_mockup:
     container_name: "test"
-    build: 
+    build:
       context: ../../
       dockerfile: ./baseimages/cpu_machine/Dockerfile
-      args: 
+      args:
         - USER=$USER
     shm_size: "8gb"
     ports:
@@ -23,7 +23,6 @@ services:
       - ../../src/server_app:/home/$USER/project/src/server_app:ro
       - ../../src/simulation_app:/home/$USER/project/src/simulation_app:ro
       - ../../src/tune_app:/home/$USER/project/src/tune_app:ro
-      - ../../src/driver.py:/home/$USER/project/src/driver.py:ro
       - ../../local:/home/$USER/project/local:ro
       - ../../face_verification:/home/$USER/project/face_verification:ro
       - ../../data/CIFAR10/raw:/home/$USER/project/data/CIFAR10/raw:ro

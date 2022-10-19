@@ -1,12 +1,12 @@
 version: "3.8"
 
-services: 
+services:
   flower_mockup:
     container_name: "test"
-    build: 
+    build:
       context: ../../
       dockerfile: ./baseimages/gpu_machine/Dockerfile
-      args: 
+      args:
         - USER=$USER
     shm_size: "32gb"
     ports:
@@ -16,8 +16,21 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              device_ids: ["0:0","0:1", "0:2", "0:3", "1:0", "1:1", "1:2", "1:3", "1:4", "1:5", "1:6"]
-              capabilities: [gpu]
+              device_ids:
+                [
+                  "0:0",
+                  "0:1",
+                  "0:2",
+                  "0:3",
+                  "1:0",
+                  "1:1",
+                  "1:2",
+                  "1:3",
+                  "1:4",
+                  "1:5",
+                  "1:6"
+                ]
+              capabilities: [ gpu ]
     volumes:
       - ../../exp:/home/$USER/project/exp
       - ../../shell:/home/$USER/project/shell
@@ -30,7 +43,6 @@ services:
       - ../../src/server_app:/home/$USER/project/src/server_app:ro
       - ../../src/simulation_app:/home/$USER/project/src/simulation_app:ro
       - ../../src/tune_app:/home/$USER/project/src/tune_app:ro
-      - ../../src/driver.py:/home/$USER/project/src/driver.py:ro
       - ../../local:/home/$USER/project/local:ro
       - ../../face_verification:/home/$USER/project/face_verification:ro
       - ../../data/CIFAR10/raw:/home/$USER/project/data/CIFAR10/raw:ro

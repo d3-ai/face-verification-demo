@@ -10,11 +10,11 @@ import numpy as np
 import torch
 import yaml
 from flwr.common import NDArray, NDArrays, Parameters, Scalar, ndarrays_to_parameters
+from flwr.server import ServerConfig, start_server
 from flwr.server.client_manager import SimpleClientManager
 from flwr.server.strategy import FedAvg
 from models.base_model import Net
 from models.driver import test
-from server_app.app import ServerConfig, start_server
 from server_app.custom_server import CustomServer
 from server_app.strategy.fedaws import FedAwS
 from torch.utils.data import DataLoader
@@ -192,7 +192,7 @@ def main():
     )
 
     # Start Flower server for four rounds of federated learning
-    hist, _ = start_server(
+    hist = start_server(
         server_address=args.server_address,
         server=server,
         config=server_config,

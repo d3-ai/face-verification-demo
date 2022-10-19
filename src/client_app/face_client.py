@@ -50,12 +50,12 @@ class FlowerFaceClient(Client):
             out_dims=dataset_config["out_dims"],
             pretrained=self.pretrained,
         )
-        self.net: Net = load_arcface_model(
-            name=self.model,
-            input_spec=dataset_config["input_spec"],
-            out_dims=1,
-            pretrained=self.pretrained,
-        )
+        # self.net: Net = load_arcface_model(
+        #     name=self.model,
+        #     input_spec=dataset_config["input_spec"],
+        #     out_dims=1,
+        #     pretrained=self.pretrained,
+        # )
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     def get_parameters(self, ins: GetParametersIns) -> GetParametersRes:

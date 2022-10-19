@@ -1,15 +1,19 @@
+from logging import WARNING
 from typing import Any, Callable, List, Optional, Tuple, Type, Union
 
 import torch
 import torch.nn as nn
+import torchvision
+from flwr.common.logger import log
 from torch import Tensor
 from torchvision.models.resnet import BasicBlock, Bottleneck, conv1x1
 
 try:
     from torchvision.utils import _log_api_usage_once
 except ImportError:
+    log(WARNING, "Import _log_api_usage_once failed, since torchvision version is %s,", torchvision.__version__)
+    log(WARNING, "If you have some problems, upgrade torchvision>=0.13.0")
     pass
-
 from models.base_model import Net
 
 """

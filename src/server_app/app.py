@@ -7,10 +7,9 @@ from flwr.common import GRPC_MAX_MESSAGE_LENGTH, Parameters
 from flwr.common.logger import log
 from flwr.server import Server
 from flwr.server.client_manager import ClientManager, SimpleClientManager
+from flwr.server.grpc_server.grpc_server import start_grpc_server
 from flwr.server.history import History
 from flwr.server.strategy import FedAvg, Strategy
-
-from .grpc_server.grpc_server import start_grpc_server
 
 DEFAULT_SERVER_ADDRESS = "[::]:8080"
 

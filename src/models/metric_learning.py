@@ -1,18 +1,27 @@
 import math
+from logging import WARNING
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision
+from flwr.common.logger import log
 from torch import Tensor
 from torchvision.models.resnet import BasicBlock, Bottleneck, conv1x1
 
 try:
     from torchvision.models.resnet import ResNet18_Weights
 except ImportError:
+    log(WARNING, "Import ResNet18_Weights failed, since torchvision version is %s,", torchvision.__version__)
+    log(WARNING, "If you have some problems, upgrade torchvision>=0.13.0")
+    pass
+try:
+    from torchvision.utils import _log_api_usage_once
+except ImportError:
+    log(WARNING, "Import _log_api_usage_once failed, since torchvision version is %s,", torchvision.__version__)
+    log(WARNING, "If you have some problems, upgrade torchvision>=0.13.0")
     pass
 from typing import Any, Callable, List, Optional, Type, Union
-
-from torchvision.utils import _log_api_usage_once
 
 from models.base_model import Net
 
