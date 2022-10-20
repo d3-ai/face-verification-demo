@@ -6,13 +6,20 @@ import numpy as np
 import torch
 from client_app.face_client import FlowerFaceClient
 from flwr.client import start_client
-
-# from utils.utils_dataset import configure_dataset
+from utils.utils_dataset import configure_dataset
 
 warnings.filterwarnings("ignore")
 
 parser = argparse.ArgumentParser("Flower Client")
 parser.add_argument("--server_address", type=str, required=True, default="0.0.0.0:8080", help="server ipaddress:post")
+parser.add_argument(
+    "--strategy",
+    type=str,
+    required=True,
+    choices=["FedAvg", "FedAwS"],
+    default="FedAvg",
+    help="FL config: number of clients",
+)
 parser.add_argument("--cid", type=str, required=True, help="Client id for data partitioning.")
 parser.add_argument(
     "--dataset",
@@ -36,14 +43,6 @@ parser.add_argument(
     default="tinyCNN",
     help="model name for FL training",
 )
-parser.add_argument(
-    "--pretrained",
-    type=str,
-    required=False,
-    choices=["IMAGENET1K_V1", "None"],
-    default="None",
-    help="pretraing recipe",
-)
 parser.add_argument("--seed", type=int, required=False, default=1234, help="Random seed")
 
 
@@ -58,13 +57,19 @@ def main() -> None:
     args = parser.parse_args()
     print(args)
     set_seed(args.seed)
-    # dataset_config = configure_dataset(dataset_name=args.dataset, target=args.target)
     config = {
         "dataset_name": args.dataset,
         "target_name": args.target,
         "model_name": args.model,
-        "pretrained": args.pretrained,
     }
+    dataset_config = configure_dataset(dataset_name=args.dataset, target=args.target)
+    config.update(dataset_config)
+    if args.strategy == "FedAvg":
+        config["out_dims"] = 10
+    elif args.strategy == "FedAwS":
+        config["out_dims"] = 1
+    else:
+        raise NotImplementedError(f"{args.strategy} is not implemented.")
     client = FlowerFaceClient(cid=args.cid, config=config)
     start_client(server_address=args.server_address, client=client)
 

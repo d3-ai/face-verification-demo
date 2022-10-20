@@ -1,30 +1,26 @@
-# Flower API
-from flwr.common.logger import log
-from flwr.common import (
-    parameters_to_ndarrays,
-    ndarrays_to_parameters,
-    FitIns,
-    FitRes,
-    Parameters,
-    NDArrays,
-    NDArray,
-    Scalar,
-    MetricsAggregationFn,
-)
-from flwr.server.client_proxy import ClientProxy
-from flwr.server.client_manager import ClientManager
-from flwr.server.strategy import FedAvg
-
-# User-defined API
-from models.metric_learning import SpreadoutRegularizer
-
-# misc API
+from functools import reduce
 from logging import WARNING
+from typing import Callable, Dict, List, Optional, Tuple, Union
+
+import numpy as np
 import torch
 import torch.nn.functional as F
-import numpy as np
-from functools import reduce
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from flwr.common import (
+    FitIns,
+    FitRes,
+    MetricsAggregationFn,
+    NDArray,
+    NDArrays,
+    Parameters,
+    Scalar,
+    ndarrays_to_parameters,
+    parameters_to_ndarrays,
+)
+from flwr.common.logger import log
+from flwr.server.client_manager import ClientManager
+from flwr.server.client_proxy import ClientProxy
+from flwr.server.strategy import FedAvg
+from models.metric_learning import SpreadoutRegularizer
 
 
 class FedAwS(FedAvg):
@@ -62,6 +58,9 @@ class FedAwS(FedAvg):
         """Federated learning strategy using Spreadout on server-side.
         Implementation based on http://proceedings.mlr.press/v119/yu20f/yu20f.pdf
         Args:
+            id_dict:
+                simulation: key is index('0','1', ...), value is index('0','1', ...) cofiguring dataset partitioning
+                exp: key is IPADDRESS:PORT, value is index('0','1', ...) cofiguring dataset partitioning
             nu (float, optional): Server-side margin parameter. Default to 0.9.
             eta (float, optional): Client-side learning rate. Defaults to 1e-1.
             lambda (float, optional): Server-side learning rate. Defaults to 1e-1.
@@ -84,8 +83,9 @@ class FedAwS(FedAvg):
         self.nu = nu
         self.eta = eta
         self.lam = lam
-        self.initial_embeddings = initial_embeddings
-        self.embeddings_dict = {}
+        self.embeddings = initial_embeddings
+        self.client_dict = {}
+        # self.embeddings_dict = {}
 
     def __repr__(self) -> str:
         rep = f"FedAwS(accept_failures={self.accept_failures})"
@@ -103,11 +103,12 @@ class FedAwS(FedAvg):
         clients = client_manager.sample(num_clients=sample_size, min_num_clients=min_num_clients)
         weights: NDArrays = parameters_to_ndarrays(parameters)
         parameters_dict: Dict[str, Parameters] = {}
-        if not any(self.embeddings_dict):
-            for idx, c in enumerate(clients):
-                self.embeddings_dict[c.cid] = self.initial_embeddings[np.newaxis, idx, :]
-        for client in clients:
-            weights[-1] = self.embeddings_dict[client.cid]
+        for i, client in enumerate(clients):
+            if any(self.client_dict):
+                idx = int(self.client_dict[client.cid])
+            else:
+                idx = i
+            weights[-1] = self.embeddings[np.newaxis, idx, :]
             parameters_dict[client.cid] = ndarrays_to_parameters(weights)
 
         return [(client, FitIns(parameters=parameters_dict[client.cid], config=config)) for client in clients]
@@ -129,19 +130,26 @@ class FedAwS(FedAvg):
         if not self.accept_failures and failures:
             return None, {}
 
+        if not any(self.client_dict):
+            for client, fit_res in results:
+                self.client_dict[client.cid] = fit_res.metrics["cid"]
         # Convert results
         weights_results = [
-            (parameters_to_ndarrays(fit_res.parameters), fit_res.num_examples, client.cid)
+            (parameters_to_ndarrays(fit_res.parameters), fit_res.num_examples, int(fit_res.metrics["cid"]))
             for client, fit_res in results
         ]
 
-        parameters_aggregated, self.embeddings_dict = aggregate_and_spreadout(
-            weights_results, num_clients=len(weights_results), num_features=512, nu=self.nu, lr=self.eta * self.lam
+        parameters_aggregated, self.embeddings = aggregate_and_spreadout(
+            weights_results,
+            num_clients=len(weights_results),
+            num_features=512,
+            nu=self.nu,
+            lr=self.eta * self.lam,
         )
 
         metrics_aggregated = {}
         if self.fit_metrics_aggregation_fn:
-            fit_metrics = [(res.num_examples, res.metrics) for _, res in results]
+            fit_metrics = {client.cid: res.metrics for client, res in results}  # modified here
             metrics_aggregated = self.fit_metrics_aggregation_fn(fit_metrics)
         elif server_round == 1:
             log(WARNING, "No fit_metrics_aggregation_fn provided")
@@ -150,21 +158,13 @@ class FedAwS(FedAvg):
 
 
 def aggregate_and_spreadout(
-    results: List[Tuple[NDArrays, int, str]], num_clients: int, num_features: int, nu: float, lr: float
-) -> Tuple[NDArrays, Dict[str, NDArray]]:
+    results: List[Tuple[NDArrays, int]], num_clients: int, num_features: int, nu: float, lr: float
+) -> Tuple[NDArrays, NDArray]:
     """Compute weighted average."""
     # Create a classification matrix from class embeddings
     embeddings: NDArray = np.zeros((num_clients, num_features))
-    cid_dict: Dict[str, int] = {}
-    embedding_dict: Dict[str, NDArray] = {}
-
-    for idx, res in enumerate(results):
-        weights, _, cid = res
-        cid_dict[cid] = idx
-        if "ipv4" in cid:
-            embeddings[idx, :] = weights[-1]
-        else:
-            embeddings[int(cid), :] = weights[-1]
+    for weights, _, cid in results:
+        embeddings[cid, :] = weights[-1]
 
     embeddings = torch.nn.Parameter(torch.tensor(embeddings))
     regularizer = SpreadoutRegularizer(nu=nu)
@@ -187,7 +187,5 @@ def aggregate_and_spreadout(
         reduce(np.add, layer_updates) / num_examples_total for layer_updates in zip(*feature_weights)
     ]
     weights_prime.append(embeddings)
-    for cid, idx in cid_dict.items():
-        embedding_dict[cid] = embeddings[np.newaxis, idx, :]
 
-    return weights_prime, embedding_dict
+    return weights_prime, embeddings

@@ -8,9 +8,9 @@ ENV LANGUAGE en_US:en_US
 ENV LC_ALL en_US.UTF-8
 
 RUN apt-get clean && apt-get update && apt-get install -y iputils-ping \
-net-tools \
-dnsutils \
-tmux
+    net-tools \
+    dnsutils \
+    tmux
 
 LABEL maintainer="Y. Yamasaki <yamasaki@hal.ipc.i.u-tokyo.ac.jp>"
 
@@ -18,24 +18,24 @@ SHELL ["/bin/bash", "-c"]
 RUN apt-get update && apt-get install -y tzdata 
 ENV TZ=Asia/Tokyo
 RUN apt-get update && apt-get install -y git \
-make \
-build-essential \
-libssl-dev \
-zlib1g-dev \
-libbz2-dev \
-libreadline-dev \
-libsqlite3-dev \
-wget \
-curl \
-llvm \
-libncursesw5-dev \
-xz-utils \
-tk-dev \
-libxml2-dev \
-libxmlsec1-dev \
-libffi-dev \
-liblzma-dev \
-python3-distutils
+    make \
+    build-essential \
+    libssl-dev \
+    zlib1g-dev \
+    libbz2-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    wget \
+    curl \
+    llvm \
+    libncursesw5-dev \
+    xz-utils \
+    tk-dev \
+    libxml2-dev \
+    libxmlsec1-dev \
+    libffi-dev \
+    liblzma-dev \
+    python3-distutils
 
 ARG USER
 ENV USER=${USER}
@@ -56,13 +56,13 @@ RUN pip install pipenv
 
 RUN pipenv install --python 3.8.0 
 RUN pipenv install https://download.pytorch.org/whl/cu113/torch-1.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl --skip-lock && \
-pipenv install torchvision https://download.pytorch.org/whl/cu113/torchvision-0.13.0%2Bcu113-cp38-cp38-linux_x86_64.whl --skip-lock && \
-pipenv install flwr==1.0.0 --skip-lock && \
-pipenv install tqdm --skip-lock && \
-pipenv install ray==1.11.1 --skip-lock && \
-pipenv install ray[tune] --skip-lock && \
-pipenv install pandas --skip-lock && \
-pipenv install optuna --skip-lock && \
-pipenv install matplotlib --skip-lock && \
-pipenv install wandb --skip-lock && \
-pipenv lock
+    pipenv install https://download.pytorch.org/whl/cu113/torchvision-0.13.0%2Bcu113-cp38-cp38-linux_x86_64.whl --skip-lock && \
+    pipenv install flwr==1.0.0 --skip-lock && \
+    pipenv install tqdm --skip-lock && \
+    pipenv install ray==1.11.1 --skip-lock && \
+    pipenv install ray[tune] --skip-lock && \
+    pipenv install pandas --skip-lock && \
+    pipenv install optuna --skip-lock && \
+    pipenv install matplotlib --skip-lock && \
+    pipenv install wandb --skip-lock && \
+    pipenv lock

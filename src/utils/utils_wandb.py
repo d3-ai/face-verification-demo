@@ -15,6 +15,6 @@ def custom_wandb_init(config: Dict[str, Any], project: str, strategy: str):
     wandb.init(
         project=project,
         config=config,
-        group=f"{strategy}_{config['model_name']}",
+        group=f"{strategy}_{config['model']}",
         name=f"{strategy}_{trial_id}",
     )

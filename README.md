@@ -90,7 +90,7 @@ $ docker run -it \
 In the container, you can simply run
 ```bash
 $ pipenv shell
-(project) . ./shell/run_server.sh --server_address "CONTAINER_IPADDRESS:8080"
+(project) . ./shell/run_fv_server.sh --server_address "CONTAINER_IPADDRESS:8080"
 ```
 
 ## Client
@@ -144,7 +144,11 @@ $ docker run -it --rm\
 In the container, you can simply run
 ```bash
 $ pipenv shell
-(project) . ./shell/run_client.sh --server_address "SERVER_IPADDRESS:8080" --cid "CLIENT_ID"
+(project) . ./shell/run_fv_client.sh --server_address "SERVER_IPADDRESS:8080" --cid "CLIENT_ID"
+```
+When you want to visualize the inference results, you can simply run
+```bash
+(project) python ./face_verification/inference_visualizer.py &
 ```
 Each client should specify a unique `CLIENT_ID` over the whole FL system.
 # Run Simulation of Federated Learning

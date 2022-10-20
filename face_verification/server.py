@@ -12,14 +12,13 @@ import yaml
 from flwr.common import NDArray, NDArrays, Parameters, Scalar, ndarrays_to_parameters
 from flwr.server import ServerConfig, start_server
 from flwr.server.client_manager import SimpleClientManager
-from flwr.server.strategy import FedAvg
 from models.base_model import Net
 from models.driver import test
 from server_app.custom_server import CustomServer
-from server_app.strategy.fedaws import FedAwS
 from torch.utils.data import DataLoader
 from utils.utils_dataset import configure_dataset, load_centralized_dataset
 from utils.utils_model import load_arcface_model
+from utils.utils_server import load_strategy
 
 warnings.filterwarnings("ignore")
 
@@ -79,16 +78,18 @@ def main():
     args = parser.parse_args()
     print(args)
     set_seed(args.seed)
+    params_config = vars(args)
 
     dataset_config = configure_dataset(dataset_name=args.dataset, target=args.target)
 
-    model: Net = load_arcface_model(
+    net: Net = load_arcface_model(
         name=args.model,
         input_spec=dataset_config["input_spec"],
         out_dims=dataset_config["out_dims"],
         pretrained=args.pretrained,
     )
-    init_parameters: Parameters = ndarrays_to_parameters(model.get_weights())
+    init_parameters: Parameters = ndarrays_to_parameters(net.get_weights())
+    init_embeddings: NDArray = net.get_weights()[-1]
 
     server_config = ServerConfig(num_rounds=args.num_rounds)
 
@@ -124,67 +125,14 @@ def main():
         return timestamps_aggregated
 
     # Create strategy
-    if args.strategy == "FedAvg":
-        criterion = "ArcFace"
-        scale = 32.0
-        margin = 0.1
-
-        def fit_config(server_rnd: int) -> Dict[str, Scalar]:
-            config = {
-                "round": server_rnd,
-                "local_epochs": args.local_epochs,
-                "batch_size": args.batch_size,
-                "lr": args.lr,
-                "weight_decay": args.weight_decay,
-                "criterion_name": criterion,
-                "scale": scale,
-                "margin": margin,
-            }
-            return config
-
-        strategy = FedAvg(
-            fraction_fit=1,
-            fraction_evaluate=1,
-            min_fit_clients=args.num_clients,
-            min_evaluate_clients=args.num_clients,
-            min_available_clients=args.num_clients,
-            evaluate_fn=get_eval_fn(model, args.dataset, args.target),
-            on_fit_config_fn=fit_config,
-            on_evaluate_config_fn=eval_config,
-            fit_metrics_aggregation_fn=timestamp_aggregation_fn,
-            initial_parameters=init_parameters,
-        )
-    elif args.strategy == "FedAwS":
-        criterion = "CCL"
-
-        def fit_config(server_rnd: int) -> Dict[str, Scalar]:
-            config = {
-                "round": server_rnd,
-                "local_epochs": args.local_epochs,
-                "batch_size": args.batch_size,
-                "lr": args.lr,
-                "weight_decay": args.weight_decay,
-                "criterion_name": criterion,
-            }
-            return config
-
-        init_parameters: Parameters = ndarrays_to_parameters(model.get_weights())
-        init_embeddings: NDArray = model.get_weights()[-1]
-        strategy = FedAwS(
-            fraction_fit=1,
-            fraction_evaluate=1,
-            min_fit_clients=args.num_clients,
-            min_evaluate_clients=args.num_clients,
-            min_available_clients=args.num_clients,
-            evaluate_fn=get_eval_fn(model, args.dataset, args.target),
-            on_fit_config_fn=fit_config,
-            on_evaluate_config_fn=eval_config,
-            initial_parameters=init_parameters,
-            initial_embeddings=init_embeddings,
-            nu=0.9,
-            eta=0.01,
-            lam=10,
-        )
+    strategy = load_strategy(
+        strategy_name=args.strategy,
+        params_config=params_config,
+        init_parameters=init_parameters,
+        init_embeddings=init_embeddings,
+        evaluate_fn=get_eval_fn(net, args.dataset, args.target),
+        fit_metrics_aggregation_fn=timestamp_aggregation_fn,
+    )
     client_manager = SimpleClientManager()
     server = CustomServer(
         client_manager=client_manager,
@@ -209,6 +157,9 @@ def main():
     save_path = Path(args.save_dir) / "metrics" / "timestamps_centralized.json"
     with open(save_path, "w") as outfile:
         json.dump(hist.timestamps_centralized, outfile)
+    save_path = Path(args.save_dir) / "metrics" / "accuracy_centralized.json"
+    with open(save_path, "w") as outfile:
+        json.dump(hist.metrics_centralized, outfile)
 
 
 if __name__ == "__main__":

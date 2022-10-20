@@ -13,26 +13,28 @@ dataset="CelebA"
 target="small"
 model="GNResNet18"
 pretrained="CelebA"
-fixed_embeddings=1
 criterion="ArcFace"
 save_model=0
 
 # fl configuration
+strategy="FedAvg"
 num_rounds=2
 num_clients=10
 fraction_fit=1
 
 # fit configuration
-batch_size=4
+batch_size=2
 local_epochs=1
 scale=32
 margin=0.1
+nu=0.9
+lam=10.0
 lr=0.005
-weight_decay=1e-4
+weight_decay=0
 
 seed=1234
-
-exp_dir="./res/simulation/${dataset}/FedAvg_${model}/"${target}"/R_${num_rounds}_B_${batch_size}_E_${local_epochs}_lr_${lr}_S_${seed}"
+time=`date '+%Y%m%d%H%M'`
+exp_dir="./sim/${dataset}/${strategy}_${model}/"${target}"/run_${time}"
 
 if [ ! -e "${exp_dir}" ]; then
     mkdir -p "${exp_dir}/logs/"
@@ -43,7 +45,8 @@ fi
 ray start --head --min-worker-port 20000 --max-worker-port 29999 --num-cpus 20 --num-gpus 10
 sleep 1 
 
-python ./face_verification/fedavg_verification.py \
+python ./face_verification/simulation.py \
+--strategy ${strategy} \
 --num_rounds ${num_rounds} \
 --num_clients ${num_clients} \
 --fraction_fit ${fraction_fit} \
@@ -51,15 +54,17 @@ python ./face_verification/fedavg_verification.py \
 --target ${target} \
 --model ${model} \
 --pretrained ${pretrained} \
---fixed_embeddings ${fixed_embeddings} \
 --local_epochs ${local_epochs} \
 --batch_size ${batch_size} \
 --criterion ${criterion} \
 --scale ${scale} \
 --margin ${margin} \
+--nu ${nu} \
+--lam ${lam} \
 --lr ${lr} \
 --weight_decay ${weight_decay} \
 --save_model ${save_model} \
+--save_dir ${exp_dir} \
 --seed ${seed} \
 2>"${exp_dir}/logs/flower.log" &
 

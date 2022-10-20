@@ -1,24 +1,37 @@
+import os
 import timeit
 from logging import INFO
 from typing import Optional
 
+import torch
 import wandb
+from flwr.common import parameters_to_ndarrays
 from flwr.common.logger import log
 from flwr.server import Server
 from flwr.server.client_manager import ClientManager
 from flwr.server.history import History
 from flwr.server.strategy import Strategy
+from models.base_model import Net
 
 
-class RayTuneServer(Server):
+class WandbServer(Server):
     """
     Flower server implementation for parameter search using ray.tune and wandb.
     """
 
-    def __init__(self, client_manager: ClientManager, strategy: Optional[Strategy] = None) -> None:
-        super(RayTuneServer, self).__init__(client_manager=client_manager, strategy=strategy)
+    def __init__(
+        self,
+        client_manager: ClientManager,
+        strategy: Optional[Strategy] = None,
+        save_model: bool = False,
+        net: Net = None,
+    ) -> None:
+        super(WandbServer, self).__init__(client_manager=client_manager, strategy=strategy)
+        self.save_model = save_model
+        if self.save_model:
+            assert net is not None
+            self.net = net
 
-    # @wandb_mixin
     def fit(self, num_rounds: int, timeout: Optional[float]):
         history = History()
 
@@ -59,21 +72,12 @@ class RayTuneServer(Server):
                 wandb.log(
                     {"test_loss": loss_cen, "test_acc": metrics_cen["accuracy"], "Aggregation round": current_round}
                 )
-
-        # Evaluate model on a sample of available clients
-        # res_fed = self.evaluate_round(server_round=-1, timeout=timeout)
-        # if res_fed:
-        #     loss_fed, evaluate_metrics_fed, _ = res_fed
-        #     if loss_fed:
-        #         history.add_loss_distributed(
-        #             server_round=current_round, loss=loss_fed
-        #         )
-        #         history.add_metrics_distributed(
-        #             server_round=current_round, metrics=evaluate_metrics_fed
-        #         )
-
-        # Bookkeeping
+        if self.save_model:
+            weights = parameters_to_ndarrays(self.parameters)
+            self.net.set_weights(weights)
+            save_path = os.path.join(wandb.run.dir, "final_model.pth")
+            torch.save(self.net.to("cpu").state_dict(), save_path)
         end_time = timeit.default_timer()
         elapsed = end_time - start_time
         log(INFO, "FL finished in %s", elapsed)
-        return history, self.parameters
+        return history

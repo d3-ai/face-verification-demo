@@ -19,18 +19,15 @@ def load_model(name: str, input_spec: Tuple[int, int, int], out_dims: int = 10, 
 
 
 def load_arcface_model(
-    name: str, input_spec: Tuple[int, int, int], out_dims: int = 10, pretrained: str = None, fixed_embeddings: int = 0
+    name: str, input_spec: Tuple[int, int, int], out_dims: int = 10, pretrained: str = "None"
 ) -> Net:
     if name == "ResNet18":
-        return get_arcface_resnet18(
-            input_spec=input_spec, num_classes=out_dims, pretrained=pretrained, fixed_embeddings=fixed_embeddings
-        )
+        return get_arcface_resnet18(input_spec=input_spec, num_classes=out_dims, pretrained=pretrained)
     elif name == "GNResNet18":
         return get_arcface_resnet18(
             input_spec=input_spec,
             num_classes=out_dims,
             pretrained=pretrained,
-            fixed_embeddings=fixed_embeddings,
             norm_layer=lambda x: nn.GroupNorm(2, x),
         )
     else:

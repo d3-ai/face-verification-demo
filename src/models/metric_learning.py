@@ -291,7 +291,6 @@ def get_arcface_resnet18(
     input_spec,
     num_classes: int,
     pretrained: str = None,
-    fixed_embeddings: int = 0,
     norm_layer: Optional[Callable[..., nn.Module]] = None,
     **kwargs: Any,
 ) -> ArcFaceResNet:
@@ -325,8 +324,6 @@ def get_arcface_resnet18(
             norm_layer=norm_layer,
             **kwargs,
         )
-    if fixed_embeddings:
-        model.arcmarginprod.weight.requires_grad = False
     return model
 
 
