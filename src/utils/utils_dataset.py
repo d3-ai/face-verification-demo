@@ -5,6 +5,7 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 from dataset_app import (
+    CentralizedCelebaAndUsbcamVerification,
     CentralizedCelebaVerification,
     CIFAR10_truncated,
     FederatedCelebaVerification,
@@ -29,7 +30,10 @@ def load_centralized_dataset(
         dataset = CIFAR10(root=root, train=train, transform=transform, download=download)
     elif dataset_name == "CelebA":
         assert target is not None
-        dataset = CentralizedCelebaVerification(train=train, target=target)
+        if target == "mix_usbcam":
+            dataset = CentralizedCelebaAndUsbcamVerification()
+        else:
+            dataset = CentralizedCelebaVerification(train=train, target=target)
     else:
         raise NotImplementedError(f"{dataset_name} is not supported")
     return dataset

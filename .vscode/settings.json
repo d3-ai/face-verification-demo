@@ -11,13 +11,13 @@
     "python.formatting.blackArgs": [
         "--line-length=119"
     ],
-    "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-        "source.organizeImports": true
-    },
     "[python]": {
         "editor.defaultFormatter": null,
         "editor.insertSpaces": true,
         "editor.renderWhitespace": "boundary",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+        },
     },
 }

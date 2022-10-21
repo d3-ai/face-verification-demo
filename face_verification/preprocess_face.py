@@ -13,6 +13,7 @@ parser = argparse.ArgumentParser("Preprocessing face image for verfication.")
 parser.add_argument(
     "--dataset", type=str, required=True, choices=["usbcam", "CelebA"], help="dataset name for Centralized training"
 )
+parser.add_argument("--cid", type=int, required=True, help="Client id for data partitioning.")
 
 
 def main():
@@ -95,14 +96,14 @@ def main():
 
     train_data = {}
     train_data["num_samples"] = train_samples
-    train_data["user_data"] = {"x": img_list[:train_samples], "y": [0 for _ in range(train_samples)]}
+    train_data["user_data"] = {"x": img_list[:train_samples], "y": [args.cid for _ in range(train_samples)]}
     file_path = save_dir / "train_data.json"
     with open(file_path, "w") as outfile:
         json.dump(train_data, outfile)
 
     test_data = {}
     test_data["num_samples"] = test_samples
-    test_data["user_data"] = {"x": img_list[train_samples:], "y": [0 for _ in range(test_samples)]}
+    test_data["user_data"] = {"x": img_list[train_samples:], "y": [args.cid for _ in range(test_samples)]}
     file_path = save_dir / "test_data.json"
     with open(file_path, "w") as outfile:
         json.dump(test_data, outfile)

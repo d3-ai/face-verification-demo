@@ -40,3 +40,39 @@ class CentralizedCelebaVerification(Dataset):
 
     def __len__(self):
         return self.num_samples
+
+
+class CentralizedCelebaAndUsbcamVerification(Dataset):
+    def __init__(self, transform=None) -> None:
+        self.celeba_root = Path("./data/celeba")
+        self.usbcam_root = Path("./data/usbcam")
+        self.transform = transform
+        if self.transform is None:
+            self.transform = transforms.Compose([transforms.ToTensor()])
+
+        self.json_path = self.celeba_root / "identities" / "mix_usbcam" / "test_data.json"
+        with open(self.json_path, "r") as f:
+            self.json_data = json.load(f)
+
+        self.num_samples = sum(self.json_data["num_samples"])
+
+        self.data = {"x": [], "y": []}
+        for _, data in self.json_data["user_data"].items():
+            self.data["x"].extend(data["x"])
+            self.data["y"].extend(data["y"])
+
+    def __getitem__(self, index):
+        target = self.data["y"][index]
+        if target == 9:
+            img_path = self.usbcam_root / "img_landmarks_align_usbcam" / self.data["x"][index]
+        else:
+            img_path = self.celeba_root / "img_landmarks_align_celeba" / self.data["x"][index]
+        img = Image.open(img_path)
+
+        if self.transform is not None:
+            img = self.transform(img)
+
+        return img, target
+
+    def __len__(self):
+        return self.num_samples

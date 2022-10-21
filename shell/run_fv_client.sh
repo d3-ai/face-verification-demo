@@ -8,6 +8,7 @@ args+=($arg)
 done
 server_address=${args[1]}
 cid=${args[3]}
+dataset${args[5]}
 
 # model config
 dataset="CelebA"
