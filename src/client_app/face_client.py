@@ -101,7 +101,7 @@ class FlowerFaceClient(Client):
             status=Status(Code.OK, message="Success fit"),
             parameters=parameters_prime,
             num_examples=len(self.trainset),
-            metrics={"comp": comp_stamp},
+            metrics={"comp": comp_stamp, "cid": self.cid},
         )
 
     def evaluate(self, ins: EvaluateIns) -> EvaluateRes:

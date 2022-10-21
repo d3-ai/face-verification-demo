@@ -13,7 +13,6 @@ cid=${args[3]}
 dataset="CelebA"
 target="small"
 model="GNResNet18"
-pretrained="None"
 
 seed=1234
 
@@ -31,7 +30,6 @@ python ./face_verification/client.py --server_address ${server_address} \
 --dataset ${dataset} \
 --target ${target} \
 --model ${model} \
---pretrained ${pretrained} \
 --seed ${seed} \
 2>"${exp_dir}/logs/client${cid}_flower.log" &
 

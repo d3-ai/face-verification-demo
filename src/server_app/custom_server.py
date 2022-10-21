@@ -1,15 +1,18 @@
 import concurrent
+import os
 import timeit
 from logging import DEBUG, INFO
 from typing import Dict, List, Optional, Tuple, Union
 
-from flwr.common import Code, FitIns, FitRes, Parameters, Scalar
+import torch
+from flwr.common import Code, FitIns, FitRes, Parameters, Scalar, parameters_to_ndarrays
 from flwr.common.logger import log
 from flwr.server import Server
 from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
 from flwr.server.history import History
 from flwr.server.strategy import Strategy
+from models.base_model import Net
 
 from .custom_history import CustomHistory
 
@@ -24,10 +27,23 @@ class CustomServer(Server):
     Flower server implementation for system performance measurement.
     """
 
-    def __init__(self, client_manager: ClientManager, strategy: Optional[Strategy] = None) -> None:
+    def __init__(
+        self,
+        client_manager: ClientManager,
+        strategy: Optional[Strategy] = None,
+        save_model: bool = False,
+        save_dir: str = None,
+        net: Net = None,
+    ) -> None:
         super(CustomServer, self).__init__(client_manager=client_manager, strategy=strategy)
+        self.save_model = save_model
+        if self.save_model:
+            assert net is not None
+            assert save_dir is not None
+            self.net = net
+            self.save_dir = save_dir
 
-    def fit(self, num_rounds: int, timeout: Optional[float]) -> Tuple[History, Parameters]:
+    def fit(self, num_rounds: int, timeout: Optional[float]) -> History:
         history = CustomHistory()
 
         log(INFO, "Initializing global parameters")
@@ -73,11 +89,16 @@ class CustomServer(Server):
             history.add_timestamps_centralized(server_round=current_round, timestamps=timestamps_cen)
             history.add_timestamps_distributed(server_round=current_round, timestamps=timestamps_fed)
 
+        if self.save_model:
+            weights = parameters_to_ndarrays(self.parameters)
+            self.net.set_weights(weights)
+            save_path = os.path.join(self.save_dir, "final_model.pth")
+            torch.save(self.net.to("cpu").state_dict(), save_path)
         # Bookkeeping
         end_time = timeit.default_timer()
         elapsed = end_time - start_time
         log(INFO, "FL finished in %s", elapsed)
-        return history, self.parameters
+        return history
 
     def fit_round(
         self, server_round: int, timeout: Optional[float], start_time: Optional[float]
