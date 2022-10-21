@@ -65,7 +65,7 @@ def configure_dataset(dataset_name: str, target: str = None) -> Dict[str, Scalar
         out_dims = 10
     elif (dataset_name == "CelebA") or (dataset_name == "usbcam"):
         input_spec = (3, 112, 112)
-        if target == "small":
+        if (target == "small") or (target == "mix_usbcam"):
             out_dims = 10
         elif target == "medium":
             out_dims = 100

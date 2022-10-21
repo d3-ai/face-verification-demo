@@ -151,7 +151,7 @@ def main():
         client_manager=client_manager,
         strategy=strategy,
         save_model=args.save_model,
-        save_dir=Path(args.save_model) / "models",
+        save_dir=Path(args.save_dir) / "models",
         net=net,
     )
 
