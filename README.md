@@ -123,21 +123,36 @@ $ docker run -it --rm\
   --mount type=bind,source="$(pwd)"/src/,target=/home/"${USER}"/project/src/,readonly \
   flower_mockup_pi4:latest
 ```
-If you want to run container on raspberry pi 4B via VNC server 
+When you want to run a container on raspberry pi 4B via VNC server, you should turn off the access control of Xserver before starting the container:
 ```bash
-$ docker build -t flower_mockup:latest ./baseimages/{*}/
 $ xhost +
 $ docker run -it --rm\
   -u ${UID}:${GID} \
   --name test \
-  --mount type=bind,source="/tmp/.X11-unix",target="/tmp/.X11-unix",readonly\
+  --mount type=bind,source="/tmp/.X11-unix",target="/tmp/.X11-unix",readonly\ # Add this line
   --mount type=bind,source="$(pwd)"/shell/,target=/home/"${USER}"/project/shell/,readonly \
   --mount type=bind,source="$(pwd)"/data/,target=/home/"${USER}"/project/data/,readonly \
   --mount type=bind,source="$(pwd)"/local/,target=/home/"${USER}"/project/local/,readonly \
   --mount type=bind,source="$(pwd)"/models/,target=/home/"${USER}"/project/models/,readonly \
   --mount type=bind,source="$(pwd)"/face_verification/,target=/home/"${USER}"/project/face_verification/,readonly \
   --mount type=bind,source="$(pwd)"/src/,target=/home/"${USER}"/project/src/,readonly \
-  --env DISPLAY="$DISPLAY" \
+  --env DISPLAY="$DISPLAY" \ # Add this line
+  flower_mockup_pi4:latest
+```
+
+When you want to run a container on Jetson Xavier NX, you run container as follows:
+```bash
+$ docker build -t flower_mockup:latest ./baseimages/jetson/
+$ docker run -it --rm\
+  -u ${UID}:${GID} \
+  --name test \
+  --runtime nvidia \ # Add this line
+  --mount type=bind,source="$(pwd)"/shell/,target=/home/"${USER}"/project/shell/,readonly \
+  --mount type=bind,source="$(pwd)"/data/,target=/home/"${USER}"/project/data/,readonly \
+  --mount type=bind,source="$(pwd)"/local/,target=/home/"${USER}"/project/local/,readonly \
+  --mount type=bind,source="$(pwd)"/models/,target=/home/"${USER}"/project/models/,readonly \
+  --mount type=bind,source="$(pwd)"/face_verification/,target=/home/"${USER}"/project/face_verification/,readonly \
+  --mount type=bind,source="$(pwd)"/src/,target=/home/"${USER}"/project/src/,readonly \
   flower_mockup_pi4:latest
 ```
 
