@@ -26,3 +26,5 @@ Install `{image_name}.tar` to Raspberry Pi
 ```=bash
 $ docker load -i {image_name}.tar
 ```
+## Jetson Xaiver NX
+Pre-requirement: `JetPack 5.0.4`.
