@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "flower-faceverification"
+version = "0.1.0"
+description = "Federated Learning Tutorials for Face Verification"
+authors = ["Yusuke Yamasaki <yamasaki@hal.ipc.i.u-tokyo.ac.jp>"]
+readme = "README.md"
+packages = [{include = "flower_faceverification"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.1.0"
+isort = "^5.12.0"
+mypy = "^1.0.0"
+pytest = "^7.2.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
