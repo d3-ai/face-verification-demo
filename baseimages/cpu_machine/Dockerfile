@@ -7,10 +7,12 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en_US
 ENV LC_ALL en_US.UTF-8
 
-RUN apt-get clean && apt-get update && apt-get install -y iputils-ping \
+RUN apt-get clean && apt-get update && apt-get install -y \
+    iputils-ping \
     net-tools \
     dnsutils \
-    tmux
+    tmux \
+    vim
 
 LABEL maintainer="Y. Yamasaki <yamasaki@hal.ipc.i.u-tokyo.ac.jp>"
 
@@ -51,21 +53,8 @@ ENV PYENV_ROOT ${HOME}/.pyenv
 ENV PATH $PYENV_ROOT/bin:$PATH
 ENV PATH $PYENV_ROOT/shims:$PATH
 
-RUN eval "$(pyenv init -)" && pyenv install 3.8.0 && pyenv global 3.8.0
-RUN pip install pipenv
-
-RUN pipenv install --python 3.8.0
-RUN pipenv install torch --skip-lock && \
-    pipenv install torchvision --skip-lock && \
-    pipenv install flwr==1.0.0 --skip-lock && \
-    pipenv install tqdm --skip-lock && \
-    pipenv install ray==1.3.0 --skip-lock && \
-    pipenv install ray[tune] --skip-lock && \
-    pipenv install pandas --skip-lock && \
-    pipenv install optuna --skip-lock && \
-    pipenv install matplotlib --skip-lock && \
-    pipenv install wandb --skip-lock && \
-    pipenv install scikit-image && \
-    pipenv install opencv-python==4.6.0.66 --skip-lock && \
-    pipenv install facenet-pytorch && \
-    pipenv lock
+RUN eval "$(pyenv init -)" && pyenv install 3.9.13 && pyenv global 3.9.13
+RUN pip install poetry
+COPY "./pyproject.toml" ${HOME}/project/
+COPY "./poetry.lock" ${HOME}/project/
+RUN poetry install --sync

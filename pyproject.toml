@@ -1,0 +1,43 @@
+[tool.poetry]
+name = "flower-faceverification"
+version = "0.1.0"
+description = "Federated Learning Tutorials for Face Verification"
+authors = ["Yusuke Yamasaki <yamasaki@hal.ipc.i.u-tokyo.ac.jp>"]
+readme = "README.md"
+packages = [{include = "flower_faceverification"}]
+
+[tool.poetry.dependencies]
+python = "~3.9"
+numpy = "^1.24.0"
+pillow = "^9.4.0"
+torch = [
+    { version = "==1.12.0", markers = "platform_machine == 'x86_64' and sys_platform == 'darwin' " },
+    { version = "==1.12.0", markers = "platform_machine == 'arm64' and sys_platform == 'darwin' " },
+    { url = "https://download.pytorch.org/whl/cu113/torch-1.12.0%2Bcu113-cp39-cp39-linux_x86_64.whl", markers = "platform_machine == 'x86_64' and sys_platform == 'linux' " },
+    { url = "https://download.pytorch.org/whl/cpu/torch-1.12.0-cp39-cp39-manylinux2014_aarch64.whl", markers = "platform_machine == 'aarch64' and sys_platform == 'linux' " },
+]
+torchvision = [
+    { version = "==0.13.0", markers = "platform_machine == 'x86_64' and sys_platform == 'darwin' " },
+    { version = "==0.13.0", markers = "platform_machine == 'arm64' and sys_platform == 'darwin' " },
+    { url = "https://download.pytorch.org/whl/cu113/torchvision-0.13.0%2Bcu113-cp39-cp39-linux_x86_64.whl", markers = "platform_machine == 'x86_64' and sys_platform == 'linux' " },
+    { url = "https://download.pytorch.org/whl/cpu/torchvision-0.13.0-cp39-cp39-manylinux2014_aarch64.whl", markers = "platform_machine == 'aarch64' and sys_platform == 'linux' " },
+]
+flwr = "~1.0.0"
+tqdm = "^4.64.1"
+matplotlib = "^3.7.0"
+opencv-python = "~4.6.0.66"
+ray = { version = "^2.2.0", extras = ["tune"], markers = "platform_machine == 'x86_64' and sys_platform == 'linux' " }
+scikit-image = "^0.19.3"
+facenet-pytorch = "^2.5.2"
+optuna = { version = "^3.1.0", markers = "platform_machine == 'x86_64' and sys_platform == 'linux' " }
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.1.0"
+isort = "^5.12.0"
+mypy = "^1.0.0"
+pytest = "^7.2.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
