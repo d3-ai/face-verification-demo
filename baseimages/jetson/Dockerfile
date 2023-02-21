@@ -7,11 +7,12 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en_US
 ENV LC_ALL en_US.UTF-8
 
-RUN apt-get clean && apt-get update && apt-get install -y iputils-ping \
+RUN apt-get clean && apt-get update && apt-get install -y \
+    iputils-ping \
     net-tools \
-    iperf3 \
     dnsutils \
-    tmux
+    tmux \
+    vim
 
 LABEL maintainer="Y. Yamasaki <yamasaki@hal.ipc.i.u-tokyo.ac.jp>"
 
@@ -39,7 +40,8 @@ RUN apt-get update && apt-get install -y git \
     liblzma-dev \
     python3-distutils
 
-RUN sudo apt-get update && apt-get install -y libjpeg-dev \
+RUN sudo apt-get update && apt-get install -y \
+    libjpeg-dev \
     zlib1g-dev \
     libpython3-dev \
     libavcodec-dev \
