@@ -8,9 +8,9 @@ import numpy as np
 import torch
 from flwr.common import NDArrays, Parameters, Scalar, ndarrays_to_parameters
 from flwr.server.strategy import FedAvg
-from models.base_model import Net
-from models.driver import test
-from server_app.app import ServerConfig, start_server
+from model.base_model import Net
+from model.driver import test
+from server.app import ServerConfig, start_server
 from torch.utils.data import DataLoader
 from utils.utils_dataset import configure_dataset, load_centralized_dataset
 from utils.utils_model import load_model

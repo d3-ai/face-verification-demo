@@ -12,11 +12,11 @@ from flwr.client import Client
 from flwr.common import NDArrays, Parameters, Scalar, ndarrays_to_parameters
 from flwr.server.client_manager import SimpleClientManager
 from flwr.server.strategy import FedAvg
-from models.base_model import Net
-from models.driver import test
-from server_app.app import ServerConfig
-from server_app.wandb_server import RayTuneServer
-from simulation_app.app import start_simulation
+from model.base_model import Net
+from model.driver import test
+from server.app import ServerConfig
+from server.wandb_server import RayTuneServer
+from simulation.app import start_simulation
 from torch.utils.data import DataLoader
 from utils.utils_dataset import configure_dataset, load_centralized_dataset
 from utils.utils_model import load_model

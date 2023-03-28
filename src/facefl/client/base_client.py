@@ -20,8 +20,8 @@ from flwr.common import (
     parameters_to_ndarrays,
 )
 from flwr.common.logger import log
-from models.base_model import Net
-from models.driver import test, train
+from model.base_model import Net
+from model.driver import test, train
 from torch.utils.data import DataLoader
 from utils.utils_dataset import (
     configure_dataset,

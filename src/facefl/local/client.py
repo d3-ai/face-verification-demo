@@ -4,7 +4,7 @@ import warnings
 
 import numpy as np
 import torch
-from client_app.base_client import FlowerClient
+from client.base_client import FlowerClient
 from flwr.client import Client, start_client
 
 warnings.filterwarnings("ignore")
