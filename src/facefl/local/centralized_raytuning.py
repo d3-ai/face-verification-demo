@@ -5,7 +5,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from tune_app.centralized import centralized
+from tune.centralized import centralized
 from utils.utils_tune import run_tuning
 
 parser = argparse.ArgumentParser("Centralized traing with ray tune.")
