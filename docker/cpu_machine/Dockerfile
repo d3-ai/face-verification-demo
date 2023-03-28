@@ -57,4 +57,4 @@ RUN eval "$(pyenv init -)" && pyenv install 3.9.13 && pyenv global 3.9.13
 RUN pip install poetry
 COPY "./pyproject.toml" ${HOME}/project/
 COPY "./poetry.lock" ${HOME}/project/
-RUN poetry install --sync
+RUN poetry install --sync --no-root
