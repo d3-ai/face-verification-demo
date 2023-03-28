@@ -7,7 +7,8 @@ from typing import Any, List
 import numpy as np
 from facenet_pytorch import MTCNN
 from PIL import Image
-from utils.utils_face import FaceCropper
+
+from facefl.utils.utils_face import FaceCropper
 
 parser = argparse.ArgumentParser("Preprocessing face image for verfication.")
 parser.add_argument(

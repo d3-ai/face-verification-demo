@@ -4,9 +4,10 @@ import warnings
 
 import numpy as np
 import torch
-from client_app.face_client import FlowerFaceClient
 from flwr.client import start_client
-from utils.utils_dataset import configure_dataset
+
+from facefl.client.face_client import FlowerFaceClient
+from facefl.utils.utils_dataset import configure_dataset
 
 warnings.filterwarnings("ignore")
 

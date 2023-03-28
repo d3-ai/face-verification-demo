@@ -4,14 +4,16 @@ from logging import INFO
 from typing import Optional
 
 import torch
-import wandb
+
+# import wandb
 from flwr.common import parameters_to_ndarrays
 from flwr.common.logger import log
 from flwr.server import Server
 from flwr.server.client_manager import ClientManager
 from flwr.server.history import History
 from flwr.server.strategy import Strategy
-from models.base_model import Net
+
+from facefl.model.base_model import Net
 
 
 class WandbServer(Server):

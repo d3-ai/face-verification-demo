@@ -20,15 +20,16 @@ from flwr.common import (
     parameters_to_ndarrays,
 )
 from flwr.common.logger import log
-from model.base_model import Net
-from model.driver import test, train
 from torch.utils.data import DataLoader
-from utils.utils_dataset import (
+
+from facefl.model.base_model import Net
+from facefl.model.driver import test, train
+from facefl.utils.utils_dataset import (
     configure_dataset,
     load_federated_dataset,
     split_validation,
 )
-from utils.utils_model import load_model
+from facefl.utils.utils_model import load_model
 
 warnings.filterwarnings("ignore")
 

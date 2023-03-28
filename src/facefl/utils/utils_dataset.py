@@ -4,17 +4,18 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 import numpy as np
-from dataset_app import (
+from flwr.common import Scalar
+from torch.utils.data import Dataset, random_split
+from torchvision.datasets import CIFAR10
+from torchvision.transforms import transforms
+
+from facefl.dataset import (
     CentralizedCelebaAndUsbcamVerification,
     CentralizedCelebaVerification,
     CIFAR10_truncated,
     FederatedCelebaVerification,
     FederatedUsbcamVerification,
 )
-from flwr.common import Scalar
-from torch.utils.data import Dataset, random_split
-from torchvision.datasets import CIFAR10
-from torchvision.transforms import transforms
 
 DATA_ROOT = Path(os.environ["DATA_ROOT"])
 

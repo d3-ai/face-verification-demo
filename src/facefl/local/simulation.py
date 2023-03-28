@@ -7,20 +7,21 @@ from typing import Callable, Dict, Optional, Tuple
 
 import numpy as np
 import torch
-from client_app.base_client import FlowerRayClient
 from flwr.client import Client
 from flwr.common import NDArrays, Parameters, Scalar, ndarrays_to_parameters
+from flwr.server.app import ServerConfig
 from flwr.server.client_manager import SimpleClientManager
 from flwr.server.strategy import FedAvg
-from model.base_model import Net
-from model.driver import test
-from server.app import ServerConfig
-from server.wandb_server import RayTuneServer
-from simulation.app import start_simulation
 from torch.utils.data import DataLoader
-from utils.utils_dataset import configure_dataset, load_centralized_dataset
-from utils.utils_model import load_model
-from utils.utils_wandb import custom_wandb_init
+
+from facefl.client.base_client import FlowerRayClient
+from facefl.model.base_model import Net
+from facefl.model.driver import test
+from facefl.server.wandb_server import WandbServer
+from facefl.simulation.app import start_simulation
+from facefl.utils.utils_dataset import configure_dataset, load_centralized_dataset
+from facefl.utils.utils_model import load_model
+from facefl.utils.utils_wandb import custom_wandb_init
 
 warnings.filterwarnings("ignore")
 

@@ -9,20 +9,21 @@ from typing import Callable, Dict, Optional, Tuple
 
 import numpy as np
 import torch
-from client_app.face_client import FlowerFaceRayClient
 from flwr.client import Client
 from flwr.common import NDArray, NDArrays, Parameters, Scalar, ndarrays_to_parameters
 from flwr.server import ServerConfig
 from flwr.server.client_manager import SimpleClientManager
-from models.base_model import Net
-from models.driver import test, verify
-from server_app.wandb_server import WandbServer
-from simulation_app.app import start_simulation
 from torch.utils.data import DataLoader
-from utils.utils_dataset import configure_dataset, load_centralized_dataset
-from utils.utils_model import load_arcface_model
-from utils.utils_server import load_strategy
-from utils.utils_wandb import custom_wandb_init
+
+from facefl.client.face_client import FlowerFaceRayClient
+from facefl.model.base_model import Net
+from facefl.model.driver import test, verify
+from facefl.server.wandb_server import WandbServer
+from facefl.simulation.app import start_simulation
+from facefl.utils.utils_dataset import configure_dataset, load_centralized_dataset
+from facefl.utils.utils_model import load_arcface_model
+from facefl.utils.utils_server import load_strategy
+from facefl.utils.utils_wandb import custom_wandb_init
 
 warnings.filterwarnings("ignore")
 

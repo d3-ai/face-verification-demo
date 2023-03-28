@@ -2,7 +2,7 @@ import os
 import uuid
 from typing import Any, Dict
 
-import wandb
+# import wandb
 
 
 def custom_wandb_init(config: Dict[str, Any], project: str, strategy: str):

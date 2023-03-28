@@ -12,13 +12,14 @@ import yaml
 from flwr.common import NDArray, NDArrays, Parameters, Scalar, ndarrays_to_parameters
 from flwr.server import ServerConfig, start_server
 from flwr.server.client_manager import SimpleClientManager
-from models.base_model import Net
-from models.driver import test
-from server_app.custom_server import CustomServer
 from torch.utils.data import DataLoader
-from utils.utils_dataset import configure_dataset, load_centralized_dataset
-from utils.utils_model import load_arcface_model
-from utils.utils_server import load_strategy
+
+from facefl.model.base_model import Net
+from facefl.model.driver import test
+from facefl.server.custom_server import CustomServer
+from facefl.utils.utils_dataset import configure_dataset, load_centralized_dataset
+from facefl.utils.utils_model import load_arcface_model
+from facefl.utils.utils_server import load_strategy
 
 warnings.filterwarnings("ignore")
 

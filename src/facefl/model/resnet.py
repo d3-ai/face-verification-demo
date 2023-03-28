@@ -18,7 +18,7 @@ except ImportError:
     )
     log(WARNING, "If you have some problems, upgrade torchvision>=0.13.0")
     pass
-from models.base_model import Net
+from facefl.model.base_model import Net
 
 """
 ResNet: ResNet from torchvision models

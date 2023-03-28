@@ -4,9 +4,10 @@ from typing import Dict
 import torch
 import torch.nn as nn
 from flwr.common.typing import Scalar
-from models.base_model import Net
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+
+from .base_model import Net
 
 
 def train(

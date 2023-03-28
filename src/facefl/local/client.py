@@ -4,8 +4,9 @@ import warnings
 
 import numpy as np
 import torch
-from client.base_client import FlowerClient
 from flwr.client import Client, start_client
+
+from facefl.client import FlowerClient
 
 warnings.filterwarnings("ignore")
 
@@ -64,7 +65,7 @@ def main() -> None:
         "model_name": args.model,
     }
     client: Client = FlowerClient(cid=args.cid, config=config)
-    start_client(server_address=args.server_address, client=client)
+    # start_client(server_address=args.server_address, client=client)
 
 
 if __name__ == "__main__":

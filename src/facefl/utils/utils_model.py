@@ -1,10 +1,11 @@
 from typing import Tuple
 
 import torch.nn as nn
-from models.base_model import Net
-from models.metric_learning import get_arcface_resnet18
-from models.resnet import resnet18
-from models.tinycnn import tinyCNN
+
+from facefl.model.base_model import Net
+from facefl.model.metric_learning import get_arcface_resnet18
+from facefl.model.resnet import resnet18
+from facefl.model.tinycnn import tinyCNN
 
 
 def load_model(

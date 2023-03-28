@@ -19,12 +19,13 @@ from flwr.common import (
     parameters_to_ndarrays,
 )
 from flwr.common.logger import log
-from models.base_model import Net
-from models.driver import test, train
-from models.metric_learning import ArcFaceLoss, CosineContrastiveLoss
 from torch.utils.data import DataLoader
-from utils.utils_dataset import load_federated_dataset
-from utils.utils_model import load_arcface_model
+
+from facefl.model.base_model import Net
+from facefl.model.driver import test, train
+from facefl.model.metric_learning import ArcFaceLoss, CosineContrastiveLoss
+from facefl.utils.utils_dataset import load_federated_dataset
+from facefl.utils.utils_model import load_arcface_model
 
 
 class FlowerFaceClient(Client):

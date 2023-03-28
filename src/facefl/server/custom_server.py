@@ -12,7 +12,8 @@ from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
 from flwr.server.history import History
 from flwr.server.strategy import Strategy
-from models.base_model import Net
+
+from facefl.model.base_model import Net
 
 from .custom_history import CustomHistory
 

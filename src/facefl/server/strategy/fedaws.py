@@ -20,7 +20,8 @@ from flwr.common.logger import log
 from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
 from flwr.server.strategy import FedAvg
-from models.metric_learning import SpreadoutRegularizer
+
+from facefl.model.metric_learning import SpreadoutRegularizer
 
 
 class FedAwS(FedAvg):

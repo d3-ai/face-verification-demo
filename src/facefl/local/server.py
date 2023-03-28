@@ -7,13 +7,14 @@ from typing import Callable, Dict, Optional, Tuple
 import numpy as np
 import torch
 from flwr.common import NDArrays, Parameters, Scalar, ndarrays_to_parameters
+from flwr.server.app import ServerConfig, start_server
 from flwr.server.strategy import FedAvg
-from model.base_model import Net
-from model.driver import test
-from server.app import ServerConfig, start_server
 from torch.utils.data import DataLoader
-from utils.utils_dataset import configure_dataset, load_centralized_dataset
-from utils.utils_model import load_model
+
+from facefl.model.base_model import Net
+from facefl.model.driver import test
+from facefl.utils.utils_dataset import configure_dataset, load_centralized_dataset
+from facefl.utils.utils_model import load_model
 
 warnings.filterwarnings("ignore")
 
@@ -176,9 +177,9 @@ def main():
     )
 
     # Start Flower server for four rounds of federated learning
-    start_server(
-        server_address=args.server_address, config=server_config, strategy=strategy
-    )
+    # start_server(
+    #     server_address=args.server_address, config=server_config, strategy=strategy
+    # )
 
 
 if __name__ == "__main__":

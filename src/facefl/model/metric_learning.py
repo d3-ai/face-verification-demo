@@ -31,7 +31,7 @@ except ImportError:
     pass
 from typing import Any, Callable, List, Optional, Type, Union
 
-from models.base_model import Net
+from facefl.model.base_model import Net
 
 
 class ArcFaceResNet(Net):
