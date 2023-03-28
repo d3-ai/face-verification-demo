@@ -24,8 +24,16 @@ parser.add_argument(
     required=True,
     help="FL config: target partitions for common dataset target attributes for celeba",
 )
-parser.add_argument("--num_clients", type=int, required=False, default=4, help="FL config: number of clients")
-parser.add_argument("--seed", type=int, required=False, default=1234, help="Random seed")
+parser.add_argument(
+    "--num_clients",
+    type=int,
+    required=False,
+    default=4,
+    help="FL config: number of clients",
+)
+parser.add_argument(
+    "--seed", type=int, required=False, default=1234, help="Random seed"
+)
 
 
 def set_seed(seed: int):

@@ -24,7 +24,10 @@ def fig_setup(fontsize: float = 15.0, fontname: str = "Arial"):
 
 
 def visualize_2d_embedded_space(
-    net: Union[ArcFaceResNet, ArcFaceResNetLR], num_classes: int, testloader: DataLoader, save_path: str = None
+    net: Union[ArcFaceResNet, ArcFaceResNetLR],
+    num_classes: int,
+    testloader: DataLoader,
+    save_path: str = None,
 ):
     net.to("cpu")
     w = F.normalize(net.state_dict()["arcmarginprod.weight"]).numpy()

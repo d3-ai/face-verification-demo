@@ -41,9 +41,15 @@ class FlowerClient(Client):
         self.dataset = config["dataset_name"]
         self.target = config["target_name"]
         validation_ratio = 0.8
-        dataset = load_federated_dataset(dataset_name=self.dataset, id=self.cid, train=True, target=self.target)
-        self.trainset, self.valset = split_validation(dataset, split_ratio=validation_ratio)
-        self.testset = load_federated_dataset(dataset_name=self.dataset, id=self.cid, train=False, target=self.target)
+        dataset = load_federated_dataset(
+            dataset_name=self.dataset, id=self.cid, train=True, target=self.target
+        )
+        self.trainset, self.valset = split_validation(
+            dataset, split_ratio=validation_ratio
+        )
+        self.testset = load_federated_dataset(
+            dataset_name=self.dataset, id=self.cid, train=False, target=self.target
+        )
 
         # model configuration
         self.model = config["model_name"]
@@ -80,7 +86,9 @@ class FlowerClient(Client):
             shuffle=True,
             drop_last=True,
         )
-        valloader = DataLoader(self.valset, batch_size=100, shuffle=False, drop_last=False)
+        valloader = DataLoader(
+            self.valset, batch_size=100, shuffle=False, drop_last=False
+        )
 
         train(
             self.net,
@@ -166,7 +174,9 @@ class FlowerRayClient(Client):
         self.net.set_weights(weights)
 
         # dataset configuration train / validation
-        trainset = load_federated_dataset(dataset_name=self.dataset, id=self.cid, train=True, target=self.target)
+        trainset = load_federated_dataset(
+            dataset_name=self.dataset, id=self.cid, train=True, target=self.target
+        )
         trainloader = DataLoader(
             trainset,
             batch_size=batch_size,
@@ -200,7 +210,9 @@ class FlowerRayClient(Client):
 
         self.net.set_weights(weights)
 
-        testset = load_federated_dataset(dataset_name=self.dataset, id=self.cid, train=False, target=self.target)
+        testset = load_federated_dataset(
+            dataset_name=self.dataset, id=self.cid, train=False, target=self.target
+        )
         # testset = load_dataset(name=self.dataset, id=self.cid, train=False, target=self.target)
         testloader = DataLoader(testset, batch_size=batch_size)
         results = test(
@@ -231,9 +243,15 @@ class FlowerNumPyClient(NumPyClient):
         self.dataset = config["dataset_name"]
         self.target = config["target_name"]
         validation_ratio = 0.8
-        dataset = load_federated_dataset(dataset_name=self.dataset, id=self.cid, train=True, target=self.target)
-        self.trainset, self.valset = split_validation(dataset, split_ratio=validation_ratio)
-        self.testset = load_federated_dataset(dataset_name=self.dataset, id=self.cid, train=False, target=self.target)
+        dataset = load_federated_dataset(
+            dataset_name=self.dataset, id=self.cid, train=True, target=self.target
+        )
+        self.trainset, self.valset = split_validation(
+            dataset, split_ratio=validation_ratio
+        )
+        self.testset = load_federated_dataset(
+            dataset_name=self.dataset, id=self.cid, train=False, target=self.target
+        )
 
         # model configuration
         self.model = config["model_name"]
@@ -270,7 +288,9 @@ class FlowerNumPyClient(NumPyClient):
         #     self.valset, batch_size=100, shuffle=False, drop_last=False
         # )
 
-        train(self.net, trainloader=trainloader, epochs=epochs, lr=lr, device=self.device)
+        train(
+            self.net, trainloader=trainloader, epochs=epochs, lr=lr, device=self.device
+        )
         parameters_prime: NDArrays = self.net.get_weights()
         # results: Dict[str, Scalar] = test(self.net, valloader, device=self.device)
 
@@ -318,7 +338,9 @@ if __name__ == "__main__":
     model = load_model(name="tiny_CNN", input_spec=(3, 32, 32))
     init_parameters = ndarrays_to_parameters(model.get_weights())
     fit_ins = FitIns(parameters=init_parameters, config=config)
-    eval_ins = EvaluateIns(parameters=init_parameters, config={"val_steps": 5, "batch_size": 10})
+    eval_ins = EvaluateIns(
+        parameters=init_parameters, config={"val_steps": 5, "batch_size": 10}
+    )
     client.fit(fit_ins)
     client.evaluate(eval_ins)
     print("Dry Run Successful")

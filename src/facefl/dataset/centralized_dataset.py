@@ -8,7 +8,9 @@ from torchvision.transforms import transforms
 
 
 class CentralizedCelebaVerification(Dataset):
-    def __init__(self, target: str = "small", train: bool = True, transform=None) -> None:
+    def __init__(
+        self, target: str = "small", train: bool = True, transform=None
+    ) -> None:
         self.root = Path("./data/celeba")
         self.transform = transform
         if self.transform is None:
@@ -50,7 +52,9 @@ class CentralizedCelebaAndUsbcamVerification(Dataset):
         if self.transform is None:
             self.transform = transforms.Compose([transforms.ToTensor()])
 
-        self.json_path = self.celeba_root / "identities" / "mix_usbcam" / "test_data.json"
+        self.json_path = (
+            self.celeba_root / "identities" / "mix_usbcam" / "test_data.json"
+        )
         with open(self.json_path, "r") as f:
             self.json_data = json.load(f)
 
@@ -64,9 +68,13 @@ class CentralizedCelebaAndUsbcamVerification(Dataset):
     def __getitem__(self, index):
         target = self.data["y"][index]
         if target == 9:
-            img_path = self.usbcam_root / "img_landmarks_align_usbcam" / self.data["x"][index]
+            img_path = (
+                self.usbcam_root / "img_landmarks_align_usbcam" / self.data["x"][index]
+            )
         else:
-            img_path = self.celeba_root / "img_landmarks_align_celeba" / self.data["x"][index]
+            img_path = (
+                self.celeba_root / "img_landmarks_align_celeba" / self.data["x"][index]
+            )
         img = Image.open(img_path)
 
         if self.transform is not None:

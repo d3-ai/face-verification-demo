@@ -29,7 +29,9 @@ class FashionMNIST_truncated(Dataset):
         self.data, self.target = self.__build_truncated_dataset__()
 
     def __build_truncated_dataset__(self):
-        mnist_dataobj = FashionMNIST(self.root, self.train, self.transform, self.target_transform, self.download)
+        mnist_dataobj = FashionMNIST(
+            self.root, self.train, self.transform, self.target_transform, self.download
+        )
         data = mnist_dataobj.data
         target = mnist_dataobj.targets
 
@@ -141,7 +143,9 @@ class CIFAR10_truncated(Dataset):
 
 
 class FederatedCelebaVerification(Dataset):
-    def __init__(self, id: str, target: str = "small", train: bool = True, transform=None) -> None:
+    def __init__(
+        self, id: str, target: str = "small", train: bool = True, transform=None
+    ) -> None:
         self.id = int(id)
         self.root = Path("./data/celeba")
         self.transform = transform

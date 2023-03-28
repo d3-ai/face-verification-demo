@@ -20,7 +20,9 @@ def get_tune_sampler(config: Dict[str, Scalar]):
     if config["sampler"] == "choice":
         return tune.choice(config["categories"])
     elif config["sampler"] == "loguniform":
-        return tune.loguniform(lower=config["lower"], upper=config["upper"], base=config["base"])
+        return tune.loguniform(
+            lower=config["lower"], upper=config["upper"], base=config["base"]
+        )
     else:
         raise NotImplementedError(f"{config['sampler']} is not implemented.")
 
@@ -103,6 +105,10 @@ def run_tuning(
     best_trial: Trial = analysis.get_best_trial("loss", "min", "last")
     print("Best trial config: {}".format(best_trial.config))
     print("Best trial final validation loss: {}".format(best_trial.last_result["loss"]))
-    print("Best trial final validation accuracy: {}".format(best_trial.last_result["accuracy"]))
+    print(
+        "Best trial final validation accuracy: {}".format(
+            best_trial.last_result["accuracy"]
+        )
+    )
 
     return best_trial

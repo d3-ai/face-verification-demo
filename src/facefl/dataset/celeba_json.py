@@ -46,8 +46,12 @@ def get_celebrities_and_images(identities: List[str]) -> Dict[str, List[str]]:
             all_celebs[celeb] = []
         all_celebs[celeb].append(image)
 
-    good_celebs: Dict[str, List[str]] = {c: all_celebs[c] for c in all_celebs if len(all_celebs[c]) == 30}
-    poor_celebs: Dict[str, List[str]] = {c: all_celebs[c] for c in all_celebs if len(all_celebs[c]) == 5}
+    good_celebs: Dict[str, List[str]] = {
+        c: all_celebs[c] for c in all_celebs if len(all_celebs[c]) == 30
+    }
+    poor_celebs: Dict[str, List[str]] = {
+        c: all_celebs[c] for c in all_celebs if len(all_celebs[c]) == 5
+    }
     return good_celebs, poor_celebs
 
 
@@ -153,7 +157,7 @@ def download():
             "list_eval_partition.txt",
         ),
     ]
-    for (file_id, md5, filename) in file_list:
+    for file_id, md5, filename in file_list:
         download_file_from_google_drive(file_id, "./data/celeba", filename, md5)
 
 
@@ -176,10 +180,16 @@ def verification_partition(train: bool = True, target: str = "large"):
         raise NotImplementedError(f"{target} is not supported")
 
     if train:
-        data = {c: {"x": celebrities[c][:24], "y": [i for _ in range(24)]} for i, c in enumerate(celeb_keys)}
+        data = {
+            c: {"x": celebrities[c][:24], "y": [i for _ in range(24)]}
+            for i, c in enumerate(celeb_keys)
+        }
         num_samples = [len(data[c]["x"]) for c in celeb_keys]
     else:
-        data = {c: {"x": celebrities[c][24:], "y": [i for _ in range(6)]} for i, c in enumerate(celeb_keys)}
+        data = {
+            c: {"x": celebrities[c][24:], "y": [i for _ in range(6)]}
+            for i, c in enumerate(celeb_keys)
+        }
         num_samples = [len(data[c]["x"]) for c in celeb_keys]
     all_data = {}
     all_data["users"] = celeb_keys

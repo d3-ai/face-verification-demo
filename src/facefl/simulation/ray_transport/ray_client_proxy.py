@@ -30,7 +30,9 @@ class RayClientProxy(ClientProxy):
         self.client_fn = client_fn
         self.resources = resources
 
-    def get_properties(self, ins: GetPropertiesIns, timeout: Optional[float]) -> GetPropertiesRes:
+    def get_properties(
+        self, ins: GetPropertiesIns, timeout: Optional[float]
+    ) -> GetPropertiesRes:
         """Returns client's properties."""
         future_get_properties_res = launch_and_get_properties.options(  # type: ignore
             **self.resources,
@@ -41,7 +43,9 @@ class RayClientProxy(ClientProxy):
             res,
         )
 
-    def get_parameters(self, ins: GetParametersIns, timeout: Optional[float]) -> GetParametersRes:
+    def get_parameters(
+        self, ins: GetParametersIns, timeout: Optional[float]
+    ) -> GetParametersRes:
         """Return the current local model parameters."""
         future_paramseters_res = launch_and_get_parameters.options(  # type: ignore
             **self.resources,
@@ -80,14 +84,18 @@ class RayClientProxy(ClientProxy):
 
 
 @ray.remote
-def launch_and_get_properties(client_fn: ClientFn, cid: str, get_properties_ins: GetPropertiesIns) -> GetPropertiesRes:
+def launch_and_get_properties(
+    client_fn: ClientFn, cid: str, get_properties_ins: GetPropertiesIns
+) -> GetPropertiesRes:
     """Exectue get_properties remotely."""
     client: Client = _create_client(client_fn, cid)
     return client.get_properties(get_properties_ins)
 
 
 @ray.remote
-def launch_and_get_parameters(client_fn: ClientFn, cid: str, get_parameters_ins: GetParametersIns) -> GetParametersRes:
+def launch_and_get_parameters(
+    client_fn: ClientFn, cid: str, get_parameters_ins: GetParametersIns
+) -> GetParametersRes:
     """Exectue get_parameters remotely."""
     client: Client = _create_client(client_fn, cid)
     return client.get_parameters(get_parameters_ins)
@@ -101,7 +109,9 @@ def launch_and_fit(client_fn: ClientFn, cid: str, fit_ins: FitIns) -> FitRes:
 
 
 @ray.remote
-def launch_and_evaluate(client_fn: ClientFn, cid: str, evaluate_ins: EvaluateIns) -> EvaluateRes:
+def launch_and_evaluate(
+    client_fn: ClientFn, cid: str, evaluate_ins: EvaluateIns
+) -> EvaluateRes:
     """Exectue evaluate remotely."""
     client: Client = _create_client(client_fn, cid)
     return client.evaluate(evaluate_ins)

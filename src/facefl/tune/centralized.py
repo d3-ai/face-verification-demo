@@ -9,7 +9,11 @@ from ray import tune
 from ray.tune.integration.wandb import wandb_mixin
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
-from utils.utils_dataset import configure_dataset, load_centralized_dataset, split_validation
+from utils.utils_dataset import (
+    configure_dataset,
+    load_centralized_dataset,
+    split_validation,
+)
 from utils.utils_model import load_model
 
 
@@ -25,9 +29,13 @@ def centralized(config):
 
     # load dataset
     split_ratio = 0.8
-    dataset: Dataset = load_centralized_dataset(name=config["dataset_name"], train=True, download=True)
+    dataset: Dataset = load_centralized_dataset(
+        name=config["dataset_name"], train=True, download=True
+    )
     trainset, valset = split_validation(dataset=dataset, split_ratio=split_ratio)
-    testset: Dataset = load_centralized_dataset(name=config["dataset_name"], train=False, download=True)
+    testset: Dataset = load_centralized_dataset(
+        name=config["dataset_name"], train=False, download=True
+    )
 
     # device setting
     device = "cpu"
@@ -40,9 +48,13 @@ def centralized(config):
         # net = torch.nn.DataParallel(net)
     net.to(device)
 
-    trainloader: DataLoader = DataLoader(trainset, batch_size=config["batch_size"], shuffle=True, **kwargs)
+    trainloader: DataLoader = DataLoader(
+        trainset, batch_size=config["batch_size"], shuffle=True, **kwargs
+    )
     valloader: DataLoader = DataLoader(valset, batch_size=100, shuffle=False, **kwargs)
-    testloader: DataLoader = DataLoader(testset, batch_size=100, shuffle=False, **kwargs)
+    testloader: DataLoader = DataLoader(
+        testset, batch_size=100, shuffle=False, **kwargs
+    )
 
     val_losses: List[float] = []
     val_acces: List[float] = []
@@ -81,7 +93,14 @@ def centralized(config):
         )
 
 
-def save_model(save_dir: str, filename: str, net: Net, losses: List[float], accs: List[float], num_epochs: int):
+def save_model(
+    save_dir: str,
+    filename: str,
+    net: Net,
+    losses: List[float],
+    accs: List[float],
+    num_epochs: int,
+):
     path = os.path.join(save_dir, filename)
     torch.save(
         {
