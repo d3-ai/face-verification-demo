@@ -58,4 +58,4 @@ RUN pip install poetry
 
 COPY "./pyproject.toml" ${HOME}/project/
 COPY "./poetry.lock" ${HOME}/project/
-RUN poetry install --sync
+RUN poetry install --sync --no-root
