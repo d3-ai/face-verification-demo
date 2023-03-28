@@ -23,9 +23,7 @@ def train(
 ) -> None:
     net.to(device)
 
-    optimizer = torch.optim.SGD(
-        net.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay
-    )
+    optimizer = torch.optim.SGD(net.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
     net.train()
     if use_tqdm:
         for epoch in range(epochs):
@@ -36,9 +34,7 @@ def train(
                 desc=f"[Epoch: {epoch}/ {epochs}]",
                 leave=False,
             ):
-                images, labels = data[0].to(device, non_blocking=True), data[1].to(
-                    device, non_blocking=True
-                )
+                images, labels = data[0].to(device, non_blocking=True), data[1].to(device, non_blocking=True)
                 optimizer.zero_grad()
                 outputs = net(images)
                 loss = criterion(outputs, labels)
@@ -47,9 +43,7 @@ def train(
     else:
         for _ in range(epochs):
             for images, labels in trainloader:
-                images, labels = images.to(device, non_blocking=True), labels.to(
-                    device, non_blocking=True
-                )
+                images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True)
                 optimizer.zero_grad()
                 outputs = net(images)
                 loss = criterion(outputs, labels)
@@ -58,9 +52,7 @@ def train(
     # net.to("cpu")
 
 
-def test(
-    net: Net, testloader: DataLoader, steps: int = None, device: str = "cpu"
-) -> Dict[str, Scalar]:
+def test(net: Net, testloader: DataLoader, steps: int = None, device: str = "cpu") -> Dict[str, Scalar]:
     net.to(device)
     criterion = torch.nn.CrossEntropyLoss()
     correct, total, steps, loss = 0, 0, 0, 0.0
