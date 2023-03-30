@@ -7,15 +7,17 @@ import sys
 import numpy as np
 import torch
 import torch.nn as nn
-import wandb
-from models.base_model import Net
-from models.metric_learning import ArcFaceLoss
 from torch.optim.lr_scheduler import _LRScheduler
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from utils.utils_dataset import configure_dataset, load_centralized_dataset
-from utils.utils_model import load_arcface_model
 from utils.utils_wandb import custom_wandb_init
+
+from facefl.dataset import configure_dataset, load_centralized_dataset
+from facefl.model import load_arcface_model
+
+# import wandb
+from facefl.model.base_model import Net
+from facefl.model.metric_learning import ArcFaceLoss
 
 parser = argparse.ArgumentParser("Simulation: Centralized learning.")
 parser.add_argument(
@@ -50,8 +52,12 @@ parser.add_argument(
     default="None",
     help="model name for Federated training",
 )
-parser.add_argument("--max_epochs", type=int, required=False, default=100, help="Max epochs")
-parser.add_argument("--batch_size", type=int, required=False, default=10, help="batchsize for training")
+parser.add_argument(
+    "--max_epochs", type=int, required=False, default=100, help="Max epochs"
+)
+parser.add_argument(
+    "--batch_size", type=int, required=False, default=10, help="batchsize for training"
+)
 parser.add_argument(
     "--criterion",
     type=str,
@@ -60,13 +66,27 @@ parser.add_argument(
     choices=["CrossEntropy", "ArcFace"],
     help="Criterion of classification performance",
 )
-parser.add_argument("--lr", type=float, required=False, default=0.01, help="learning rate")
-parser.add_argument("--momentum", type=float, required=False, default=0.0, help="momentum")
-parser.add_argument("--weight_decay", type=float, required=False, default=0.0, help="weigh_decay")
-parser.add_argument("--scale", type=float, required=False, default=0.0, help="scale for arcface loss")
-parser.add_argument("--margin", type=float, required=False, default=0.0, help="margin for arcface loss")
-parser.add_argument("--save_model", type=int, required=False, default=0, help="flag for model saving")
-parser.add_argument("--seed", type=int, required=False, default=1234, help="Random seed")
+parser.add_argument(
+    "--lr", type=float, required=False, default=0.01, help="learning rate"
+)
+parser.add_argument(
+    "--momentum", type=float, required=False, default=0.0, help="momentum"
+)
+parser.add_argument(
+    "--weight_decay", type=float, required=False, default=0.0, help="weigh_decay"
+)
+parser.add_argument(
+    "--scale", type=float, required=False, default=0.0, help="scale for arcface loss"
+)
+parser.add_argument(
+    "--margin", type=float, required=False, default=0.0, help="margin for arcface loss"
+)
+parser.add_argument(
+    "--save_model", type=int, required=False, default=0, help="flag for model saving"
+)
+parser.add_argument(
+    "--seed", type=int, required=False, default=1234, help="Random seed"
+)
 
 
 def set_seed(seed: int):
@@ -128,7 +148,9 @@ class CosineAnnealingWarmupRestarts(_LRScheduler):
             return self.base_lrs
         elif self.step_in_cycle < self.warmup_steps:
             return [
-                (self.max_lr - base_lr) * self.step_in_cycle / self.warmup_steps + base_lr for base_lr in self.base_lrs
+                (self.max_lr - base_lr) * self.step_in_cycle / self.warmup_steps
+                + base_lr
+                for base_lr in self.base_lrs
             ]
         else:
             return [
@@ -137,7 +159,9 @@ class CosineAnnealingWarmupRestarts(_LRScheduler):
                 * (
                     1
                     + math.cos(
-                        math.pi * (self.step_in_cycle - self.warmup_steps) / (self.cur_cycle_steps - self.warmup_steps)
+                        math.pi
+                        * (self.step_in_cycle - self.warmup_steps)
+                        / (self.cur_cycle_steps - self.warmup_steps)
                     )
                 )
                 / 2
@@ -152,7 +176,8 @@ class CosineAnnealingWarmupRestarts(_LRScheduler):
                 self.cycle += 1
                 self.step_in_cycle = self.step_in_cycle - self.cur_cycle_steps
                 self.cur_cycle_steps = (
-                    int((self.cur_cycle_steps - self.warmup_steps) * self.cycle_mult) + self.warmup_steps
+                    int((self.cur_cycle_steps - self.warmup_steps) * self.cycle_mult)
+                    + self.warmup_steps
                 )
         else:
             if epoch >= self.first_cycle_steps:
@@ -160,12 +185,24 @@ class CosineAnnealingWarmupRestarts(_LRScheduler):
                     self.step_in_cycle = epoch % self.first_cycle_steps
                     self.cycle = epoch // self.first_cycle_steps
                 else:
-                    n = int(math.log((epoch / self.first_cycle_steps * (self.cycle_mult - 1) + 1), self.cycle_mult))
+                    n = int(
+                        math.log(
+                            (
+                                epoch / self.first_cycle_steps * (self.cycle_mult - 1)
+                                + 1
+                            ),
+                            self.cycle_mult,
+                        )
+                    )
                     self.cycle = n
                     self.step_in_cycle = epoch - int(
-                        self.first_cycle_steps * (self.cycle_mult**n - 1) / (self.cycle_mult - 1)
+                        self.first_cycle_steps
+                        * (self.cycle_mult**n - 1)
+                        / (self.cycle_mult - 1)
                     )
-                    self.cur_cycle_steps = self.first_cycle_steps * self.cycle_mult ** (n)
+                    self.cur_cycle_steps = self.first_cycle_steps * self.cycle_mult ** (
+                        n
+                    )
             else:
                 self.cur_cycle_steps = self.first_cycle_steps
                 self.step_in_cycle = epoch
@@ -206,16 +243,31 @@ def main():
         "seed": args.seed,
         "api_key_file": os.environ["WANDB_API_KEY_FILE"],
     }
-    custom_wandb_init(config=params_config, project=f"{args.dataset}_verifications", strategy="Centralized")
+    custom_wandb_init(
+        config=params_config,
+        project=f"{args.dataset}_verifications",
+        strategy="Centralized",
+    )
 
     # dataset
-    trainset = load_centralized_dataset(dataset_name=args.dataset, train=True, target=args.target)
-    testset = load_centralized_dataset(dataset_name=args.dataset, train=False, target=args.target)
+    trainset = load_centralized_dataset(
+        dataset_name=args.dataset, train=True, target=args.target
+    )
+    testset = load_centralized_dataset(
+        dataset_name=args.dataset, train=False, target=args.target
+    )
 
     trainloader = DataLoader(
-        trainset, batch_size=params_config["batch_size"], num_workers=2, pin_memory=True, shuffle=True, drop_last=True
+        trainset,
+        batch_size=params_config["batch_size"],
+        num_workers=2,
+        pin_memory=True,
+        shuffle=True,
+        drop_last=True,
     )
-    testloader = DataLoader(testset, batch_size=1000, shuffle=False, num_workers=2, pin_memory=True)
+    testloader = DataLoader(
+        testset, batch_size=1000, shuffle=False, num_workers=2, pin_memory=True
+    )
 
     # criterion
     if args.criterion == "CrossEntropy":
@@ -235,7 +287,10 @@ def main():
     #     weight_decay=params_config["weight_decay"],
     # )
     optimizer = torch.optim.SGD(
-        net.parameters(), lr=0.005, momentum=params_config["momentum"], weight_decay=params_config["weight_decay"]
+        net.parameters(),
+        lr=0.005,
+        momentum=params_config["momentum"],
+        weight_decay=params_config["weight_decay"],
     )
     # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=100, eta_min=0.005)
     scheduler = CosineAnnealingWarmupRestarts(
@@ -257,7 +312,9 @@ def main():
             desc=f"Epoch: {epoch} / {params_config['max_epochs']}",
             leave=False,
         ):
-            images, labels = data[0].to(device, non_blocking=True), data[1].to(device, non_blocking=True)
+            images, labels = data[0].to(device, non_blocking=True), data[1].to(
+                device, non_blocking=True
+            )
             optimizer.zero_grad()
             outputs = net(images)
             loss = criterion(outputs, labels)
@@ -268,18 +325,20 @@ def main():
         correct, total, steps, loss = 0, 0, 0, 0.0
         with torch.no_grad():
             for images, labels in testloader:
-                images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True)
+                images, labels = images.to(device, non_blocking=True), labels.to(
+                    device, non_blocking=True
+                )
                 outputs = net(images)
                 loss += criterion(outputs, labels).item()
                 _, predicted = torch.max(outputs.data, 1)
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
                 steps += 1
-        wandb.log({"test_loss": loss / steps, "test_acc": correct / total})
+    #     wandb.log({"test_loss": loss / steps, "test_acc": correct / total})
 
-    if args.save_model:
-        save_path = os.path.join(wandb.run.dir, "final_model.pth")
-        torch.save(net.to("cpu").state_dict(), save_path)
+    # if args.save_model:
+    #     save_path = os.path.join(wandb.run.dir, "final_model.pth")
+    #     torch.save(net.to("cpu").state_dict(), save_path)
 
 
 if __name__ == "__main__":

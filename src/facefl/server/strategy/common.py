@@ -2,8 +2,9 @@ from typing import Callable, Dict, Optional, Tuple
 
 from flwr.common import MetricsAggregationFn, NDArray, NDArrays, Parameters, Scalar
 from flwr.server.strategy import Strategy
-from server_app.strategy.fedavg import FedAvg
-from server_app.strategy.fedaws import FedAwS
+
+from facefl.server.strategy.fedavg import FedAvg
+from facefl.server.strategy.fedaws import FedAwS
 
 
 def load_strategy(
@@ -47,7 +48,9 @@ def load_strategy(
         strategy = FedAvg(
             fraction_fit=params_config["fraction_fit"],
             fraction_evaluate=1,
-            min_fit_clients=int(params_config["num_clients"] * params_config["fraction_fit"]),
+            min_fit_clients=int(
+                params_config["num_clients"] * params_config["fraction_fit"]
+            ),
             min_evaluate_clients=params_config["num_clients"],
             min_available_clients=params_config["num_clients"],
             evaluate_fn=evaluate_fn,
@@ -75,7 +78,9 @@ def load_strategy(
         strategy = FedAwS(
             fraction_fit=params_config["fraction_fit"],
             fraction_evaluate=1,
-            min_fit_clients=int(params_config["num_clients"] * params_config["fraction_fit"]),
+            min_fit_clients=int(
+                params_config["num_clients"] * params_config["fraction_fit"]
+            ),
             min_evaluate_clients=params_config["num_clients"],
             min_available_clients=params_config["num_clients"],
             evaluate_fn=evaluate_fn,

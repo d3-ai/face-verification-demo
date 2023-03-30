@@ -4,8 +4,9 @@ import warnings
 
 import numpy as np
 import torch
-from dataset_app.common import create_iid, load_cifar10
-from utils.utils_dataset import write_json
+
+from facefl.dataset.common import create_iid, load_cifar10
+from facefl.dataset.dataset import write_json
 
 warnings.filterwarnings("ignore")
 
@@ -24,8 +25,16 @@ parser.add_argument(
     required=True,
     help="FL config: target partitions for common dataset target attributes for celeba",
 )
-parser.add_argument("--num_clients", type=int, required=False, default=4, help="FL config: number of clients")
-parser.add_argument("--seed", type=int, required=False, default=1234, help="Random seed")
+parser.add_argument(
+    "--num_clients",
+    type=int,
+    required=False,
+    default=4,
+    help="FL config: number of clients",
+)
+parser.add_argument(
+    "--seed", type=int, required=False, default=1234, help="Random seed"
+)
 
 
 def set_seed(seed: int):

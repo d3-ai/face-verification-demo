@@ -4,14 +4,16 @@ from logging import INFO
 from typing import Optional
 
 import torch
-import wandb
+
+# import wandb
 from flwr.common import parameters_to_ndarrays
 from flwr.common.logger import log
 from flwr.server import Server
 from flwr.server.client_manager import ClientManager
 from flwr.server.history import History
 from flwr.server.strategy import Strategy
-from models.base_model import Net
+
+from facefl.model import Net
 
 
 class WandbServer(Server):
@@ -26,7 +28,9 @@ class WandbServer(Server):
         save_model: bool = False,
         net: Net = None,
     ) -> None:
-        super(WandbServer, self).__init__(client_manager=client_manager, strategy=strategy)
+        super(WandbServer, self).__init__(
+            client_manager=client_manager, strategy=strategy
+        )
         self.save_model = save_model
         if self.save_model:
             assert net is not None
@@ -40,10 +44,18 @@ class WandbServer(Server):
         log(INFO, "Evaluating initial parameters")
         res = self.strategy.evaluate(0, parameters=self.parameters)
         if res is not None:
-            log(INFO, "initial parameters (loss, other metrics): %s, %s", res[0], res[1])
+            log(
+                INFO, "initial parameters (loss, other metrics): %s, %s", res[0], res[1]
+            )
             history.add_loss_centralized(server_round=0, loss=res[0])
             history.add_metrics_centralized(server_round=0, metrics=res[1])
-            wandb.log({"test_loss": res[0], "test_acc": res[1]["accuracy"], "Aggregation round": 0})
+            wandb.log(
+                {
+                    "test_loss": res[0],
+                    "test_acc": res[1]["accuracy"],
+                    "Aggregation round": 0,
+                }
+            )
 
         log(INFO, "FL starting")
         start_time = timeit.default_timer()
@@ -68,9 +80,15 @@ class WandbServer(Server):
                     timeit.default_timer() - start_time,
                 )
                 history.add_loss_centralized(server_round=current_round, loss=loss_cen)
-                history.add_metrics_centralized(server_round=current_round, metrics=metrics_cen)
+                history.add_metrics_centralized(
+                    server_round=current_round, metrics=metrics_cen
+                )
                 wandb.log(
-                    {"test_loss": loss_cen, "test_acc": metrics_cen["accuracy"], "Aggregation round": current_round}
+                    {
+                        "test_loss": loss_cen,
+                        "test_acc": metrics_cen["accuracy"],
+                        "Aggregation round": current_round,
+                    }
                 )
         if self.save_model:
             weights = parameters_to_ndarrays(self.parameters)

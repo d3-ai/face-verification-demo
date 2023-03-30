@@ -1,7 +1,7 @@
 {
     "name": "Docker-Python",
     "dockerComposeFile": "./gpu_machine/docker-compose.yml",
-    "service": "flower_mockup",
+    "service": "flower_faceverification",
     "workspaceFolder": "/home/yamasaki/project",
     "customizations": {
         "vscode": {

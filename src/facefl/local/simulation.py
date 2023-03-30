@@ -7,26 +7,31 @@ from typing import Callable, Dict, Optional, Tuple
 
 import numpy as np
 import torch
-from client_app.base_client import FlowerRayClient
 from flwr.client import Client
 from flwr.common import NDArrays, Parameters, Scalar, ndarrays_to_parameters
+from flwr.server.app import ServerConfig
 from flwr.server.client_manager import SimpleClientManager
 from flwr.server.strategy import FedAvg
-from model.base_model import Net
-from model.driver import test
-from server.app import ServerConfig
-from server.wandb_server import RayTuneServer
-from simulation.app import start_simulation
 from torch.utils.data import DataLoader
-from utils.utils_dataset import configure_dataset, load_centralized_dataset
-from utils.utils_model import load_model
-from utils.utils_wandb import custom_wandb_init
+
+from facefl.client.base_client import FlowerRayClient
+from facefl.dataset import configure_dataset, load_centralized_dataset
+from facefl.model import load_model
+from facefl.model.base_model import Net
+from facefl.model.driver import test
+from facefl.server.wandb_server import WandbServer
+from facefl.simulation.app import start_simulation
+from facefl.utils.utils_wandb import custom_wandb_init
 
 warnings.filterwarnings("ignore")
 
 parser = argparse.ArgumentParser("Flower simulation")
 parser.add_argument(
-    "--dataset", type=str, required=True, choices=["CIFAR10", "CelebA"], help="FL config: dataset name"
+    "--dataset",
+    type=str,
+    required=True,
+    choices=["CIFAR10", "CelebA"],
+    help="FL config: dataset name",
 )
 parser.add_argument(
     "--target",
@@ -35,16 +40,64 @@ parser.add_argument(
     help="FL config: target partitions for common dataset target attributes for celeba",
 )
 parser.add_argument(
-    "--model", type=str, required=True, choices=["tinyCNN", "ResNet18", "GNResNet18"], help="FL config: model name"
+    "--model",
+    type=str,
+    required=True,
+    choices=["tinyCNN", "ResNet18", "GNResNet18"],
+    help="FL config: model name",
 )
-parser.add_argument("--num_rounds", type=int, required=False, default=5, help="FL config: aggregation rounds")
-parser.add_argument("--num_clients", type=int, required=False, default=4, help="FL config: number of clients")
-parser.add_argument("--fraction_fit", type=float, required=False, default=1, help="FL config: client selection ratio")
-parser.add_argument("--local_epochs", type=int, required=False, default=5, help="Client fit config: local epochs")
-parser.add_argument("--batch_size", type=int, required=False, default=10, help="Client fit config: batchsize")
-parser.add_argument("--lr", type=float, required=False, default=0.01, help="Client fit config: learning rate")
-parser.add_argument("--weight_decay", type=float, required=False, default=0.0, help="Client fit config: weigh_decay")
-parser.add_argument("--seed", type=int, required=False, default=1234, help="Random seed")
+parser.add_argument(
+    "--num_rounds",
+    type=int,
+    required=False,
+    default=5,
+    help="FL config: aggregation rounds",
+)
+parser.add_argument(
+    "--num_clients",
+    type=int,
+    required=False,
+    default=4,
+    help="FL config: number of clients",
+)
+parser.add_argument(
+    "--fraction_fit",
+    type=float,
+    required=False,
+    default=1,
+    help="FL config: client selection ratio",
+)
+parser.add_argument(
+    "--local_epochs",
+    type=int,
+    required=False,
+    default=5,
+    help="Client fit config: local epochs",
+)
+parser.add_argument(
+    "--batch_size",
+    type=int,
+    required=False,
+    default=10,
+    help="Client fit config: batchsize",
+)
+parser.add_argument(
+    "--lr",
+    type=float,
+    required=False,
+    default=0.01,
+    help="Client fit config: learning rate",
+)
+parser.add_argument(
+    "--weight_decay",
+    type=float,
+    required=False,
+    default=0.0,
+    help="Client fit config: weigh_decay",
+)
+parser.add_argument(
+    "--seed", type=int, required=False, default=1234, help="Random seed"
+)
 
 
 def set_seed(seed: int):
@@ -62,11 +115,17 @@ def main():
     dataset_config = configure_dataset(dataset_name=args.dataset, target=args.target)
 
     net: Net = load_model(
-        name=args.model, input_spec=dataset_config["input_spec"], out_dims=dataset_config["out_dims"]
+        name=args.model,
+        input_spec=dataset_config["input_spec"],
+        out_dims=dataset_config["out_dims"],
     )
     init_parameters: Parameters = ndarrays_to_parameters(net.get_weights())
 
-    client_config = {"dataset_name": args.dataset, "target_name": args.target, "model_name": args.model}
+    client_config = {
+        "dataset_name": args.dataset,
+        "target_name": args.target,
+        "model_name": args.model,
+    }
     server_config = ServerConfig(num_rounds=args.num_rounds)
 
     def fit_config(server_round: int) -> Dict[str, Scalar]:
@@ -85,7 +144,9 @@ def main():
         return config
 
     def get_eval_fn(model: Net, dataset: str, target: str) -> Callable:
-        testset = load_centralized_dataset(dataset_name=dataset, train=False, target=target)
+        testset = load_centralized_dataset(
+            dataset_name=dataset, train=False, target=target
+        )
         testloader = DataLoader(testset, batch_size=1000)
 
         def evaluate(

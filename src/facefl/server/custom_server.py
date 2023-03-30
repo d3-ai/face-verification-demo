@@ -12,7 +12,8 @@ from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
 from flwr.server.history import History
 from flwr.server.strategy import Strategy
-from models.base_model import Net
+
+from facefl.model import Net
 
 from .custom_history import CustomHistory
 
@@ -35,7 +36,9 @@ class CustomServer(Server):
         save_dir: str = None,
         net: Net = None,
     ) -> None:
-        super(CustomServer, self).__init__(client_manager=client_manager, strategy=strategy)
+        super(CustomServer, self).__init__(
+            client_manager=client_manager, strategy=strategy
+        )
         self.save_model = save_model
         if self.save_model:
             assert net is not None
@@ -51,7 +54,9 @@ class CustomServer(Server):
         log(INFO, "Evaluating initial parameters")
         res = self.strategy.evaluate(0, parameters=self.parameters)
         if res is not None:
-            log(INFO, "initial parameters (loss, other metrics): %s, %s", res[0], res[1])
+            log(
+                INFO, "initial parameters (loss, other metrics): %s, %s", res[0], res[1]
+            )
             history.add_loss_centralized(server_round=0, loss=res[0])
             history.add_metrics_centralized(server_round=0, metrics=res[1])
 
@@ -59,7 +64,9 @@ class CustomServer(Server):
         start_time = timeit.default_timer()
 
         for current_round in range(1, num_rounds + 1):
-            res_fit = self.fit_round(server_round=current_round, timeout=timeout, start_time=start_time)
+            res_fit = self.fit_round(
+                server_round=current_round, timeout=timeout, start_time=start_time
+            )
             if res_fit:
                 (
                     parameters_prime,
@@ -76,7 +83,9 @@ class CustomServer(Server):
             if res_cen is not None:
                 loss_cen, metrics_cen = res_cen
                 history.add_loss_centralized(server_round=current_round, loss=loss_cen)
-                history.add_metrics_centralized(server_round=current_round, metrics=metrics_cen)
+                history.add_metrics_centralized(
+                    server_round=current_round, metrics=metrics_cen
+                )
                 log(
                     INFO,
                     "fit progress: (%s, %s, %s, %s)",
@@ -86,8 +95,12 @@ class CustomServer(Server):
                     timeit.default_timer() - start_time,
                 )
                 timestamps_cen["eval_round"] = timeit.default_timer() - start_time
-            history.add_timestamps_centralized(server_round=current_round, timestamps=timestamps_cen)
-            history.add_timestamps_distributed(server_round=current_round, timestamps=timestamps_fed)
+            history.add_timestamps_centralized(
+                server_round=current_round, timestamps=timestamps_cen
+            )
+            history.add_timestamps_distributed(
+                server_round=current_round, timestamps=timestamps_fed
+            )
 
         if self.save_model:
             weights = parameters_to_ndarrays(self.parameters)
@@ -102,7 +115,9 @@ class CustomServer(Server):
 
     def fit_round(
         self, server_round: int, timeout: Optional[float], start_time: Optional[float]
-    ) -> Optional[Tuple[Optional[Parameters], Dict[str, Scalar], FitResultsAndFailures]]:
+    ) -> Optional[
+        Tuple[Optional[Parameters], Dict[str, Scalar], FitResultsAndFailures]
+    ]:
         """Perform a single round of federated averaging."""
         timestamps: Dict[str, Scalar] = {}
 
@@ -173,7 +188,8 @@ def fit_clients(
     """Refine parameters concurrently on all selected clients."""
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         submitted_fs = {
-            executor.submit(fit_client, client_proxy, ins, timeout) for client_proxy, ins in client_instructions
+            executor.submit(fit_client, client_proxy, ins, timeout)
+            for client_proxy, ins in client_instructions
         }
         finished_fs, _ = concurrent.futures.wait(
             fs=submitted_fs,
@@ -184,11 +200,15 @@ def fit_clients(
     results: List[Tuple[ClientProxy, FitRes]] = []
     failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]] = []
     for future in finished_fs:
-        _handle_finished_future_after_fit(future=future, results=results, failures=failures)
+        _handle_finished_future_after_fit(
+            future=future, results=results, failures=failures
+        )
     return results, failures
 
 
-def fit_client(client: ClientProxy, ins: FitIns, timeout: Optional[float]) -> Tuple[ClientProxy, FitRes]:
+def fit_client(
+    client: ClientProxy, ins: FitIns, timeout: Optional[float]
+) -> Tuple[ClientProxy, FitRes]:
     """Refine parameters on a single client."""
     start_time = timeit.default_timer()
     fit_res = client.fit(ins, timeout=timeout)

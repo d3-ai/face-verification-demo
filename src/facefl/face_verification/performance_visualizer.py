@@ -30,11 +30,17 @@ def clientwise_historam(load_dir: str, num_clients: int = 10):
     width = 0.3
     fig_setup()
     plt.bar(left, comm_res, yerr=comm_err, color="r", width=width, align="center")
-    plt.bar(left + width, comp_res, yerr=comp_err, color="b", width=width, align="center")
+    plt.bar(
+        left + width, comp_res, yerr=comp_err, color="b", width=width, align="center"
+    )
     plt.xticks(left + width / 2, labels)
-    plt.legend(labels=["comm", "comp"], loc="lower center", bbox_to_anchor=(0.5, 0.8), ncol=2)
+    plt.legend(
+        labels=["comm", "comp"], loc="lower center", bbox_to_anchor=(0.5, 0.8), ncol=2
+    )
     plt.savefig("hoge.png")
 
 
 if __name__ == "__main__":
-    clientwise_historam(load_dir="./exp/CelebA/FedAvg_GNResNet18/small/run_202210061745")
+    clientwise_historam(
+        load_dir="./exp/CelebA/FedAvg_GNResNet18/small/run_202210061745"
+    )

@@ -52,9 +52,19 @@ class tinyCNN(Net):
         return x
 
     def _conv_update(self) -> None:
-        self.width = ceil((self.width - (self.conv_kernel_size - 1) - 1) / self.conv_kernel_stride + 1)
-        self.height = ceil((self.height - (self.conv_kernel_size - 1) - 1) / self.conv_kernel_stride + 1)
+        self.width = ceil(
+            (self.width - (self.conv_kernel_size - 1) - 1) / self.conv_kernel_stride + 1
+        )
+        self.height = ceil(
+            (self.height - (self.conv_kernel_size - 1) - 1) / self.conv_kernel_stride
+            + 1
+        )
 
     def _pool_update(self) -> None:
-        self.width = ceil((self.width - (self.pool_kernel_size - 1) - 1) / self.pool_kernel_stride + 1)
-        self.height = ceil((self.height - (self.pool_kernel_size - 1) - 1) / self.pool_kernel_stride + 1)
+        self.width = ceil(
+            (self.width - (self.pool_kernel_size - 1) - 1) / self.pool_kernel_stride + 1
+        )
+        self.height = ceil(
+            (self.height - (self.pool_kernel_size - 1) - 1) / self.pool_kernel_stride
+            + 1
+        )

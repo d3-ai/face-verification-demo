@@ -4,17 +4,18 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 import numpy as np
-from dataset_app import (
+from flwr.common import Scalar
+from torch.utils.data import Dataset, random_split
+from torchvision.datasets import CIFAR10
+from torchvision.transforms import transforms
+
+from facefl.dataset import (
     CentralizedCelebaAndUsbcamVerification,
     CentralizedCelebaVerification,
     CIFAR10_truncated,
     FederatedCelebaVerification,
     FederatedUsbcamVerification,
 )
-from flwr.common import Scalar
-from torch.utils.data import Dataset, random_split
-from torchvision.datasets import CIFAR10
-from torchvision.transforms import transforms
 
 DATA_ROOT = Path(os.environ["DATA_ROOT"])
 
@@ -24,10 +25,17 @@ def load_centralized_dataset(
 ) -> Dataset:
     if dataset_name == "CIFAR10":
         transform = transforms.Compose(
-            [transforms.ToTensor(), transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))]
+            [
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    (0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)
+                ),
+            ]
         )
         root = DATA_ROOT / "CIFAR10" / "raw"
-        dataset = CIFAR10(root=root, train=train, transform=transform, download=download)
+        dataset = CIFAR10(
+            root=root, train=train, transform=transform, download=download
+        )
     elif dataset_name == "CelebA":
         assert target is not None
         if target == "mix_usbcam":
@@ -40,14 +48,28 @@ def load_centralized_dataset(
 
 
 def load_federated_dataset(
-    dataset_name: str, id: str, train: bool = True, target: str = None, download: bool = False
+    dataset_name: str,
+    id: str,
+    train: bool = True,
+    target: str = None,
+    download: bool = False,
 ) -> Dataset:
     if dataset_name == "CIFAR10":
         transform = transforms.Compose(
-            [transforms.ToTensor(), transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))]
+            [
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    (0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)
+                ),
+            ]
         )
         dataset = CIFAR10_truncated(
-            root=DATA_ROOT, id=id, train=train, target=target, transform=transform, download=download
+            root=DATA_ROOT,
+            id=id,
+            train=train,
+            target=target,
+            transform=transform,
+            download=download,
         )
     elif dataset_name == "CelebA":
         assert target is not None
@@ -85,7 +107,9 @@ def split_validation(dataset: Dataset, split_ratio: float) -> Tuple[Dataset, Dat
     return trainset, valset
 
 
-def write_json(dataset: str, target: str, json_data: Dict[str, List[np.ndarray]], train: bool):
+def write_json(
+    dataset: str, target: str, json_data: Dict[str, List[np.ndarray]], train: bool
+):
     DATA_ROOT = Path(os.environ["DATA_ROOT"])
     if dataset == "CIFAR10":
         save_dir = DATA_ROOT / "CIFAR10" / "partitions" / target

@@ -7,13 +7,20 @@ from typing import Any, List
 import numpy as np
 from facenet_pytorch import MTCNN
 from PIL import Image
-from utils.utils_face import FaceCropper
+
+from facefl.dataset.preprocess_face import FaceCropper
 
 parser = argparse.ArgumentParser("Preprocessing face image for verfication.")
 parser.add_argument(
-    "--dataset", type=str, required=True, choices=["usbcam", "CelebA"], help="dataset name for Centralized training"
+    "--dataset",
+    type=str,
+    required=True,
+    choices=["usbcam", "CelebA"],
+    help="dataset name for Centralized training",
 )
-parser.add_argument("--cid", type=int, required=True, help="Client id for data partitioning.")
+parser.add_argument(
+    "--cid", type=int, required=True, help="Client id for data partitioning."
+)
 
 
 def main():
@@ -21,8 +28,14 @@ def main():
     print(args)
 
     # configure path
-    load_dir = Path("./data") / args.dataset.lower() / f"img_align_{args.dataset.lower()}"
-    landmark_path = Path("./data") / args.dataset.lower() / f"list_landmarks_align_{args.dataset.lower()}.txt"
+    load_dir = (
+        Path("./data") / args.dataset.lower() / f"img_align_{args.dataset.lower()}"
+    )
+    landmark_path = (
+        Path("./data")
+        / args.dataset.lower()
+        / f"list_landmarks_align_{args.dataset.lower()}.txt"
+    )
 
     if not os.path.isdir(load_dir):
         os.mkdir(load_dir)
@@ -34,7 +47,9 @@ def main():
         mtcnn = MTCNN(select_largest=False, post_process=False, device="cpu")
 
         # configure images
-        num_images = sum(os.path.splitext(name)[1] == ".jpg" for name in os.listdir(load_dir))
+        num_images = sum(
+            os.path.splitext(name)[1] == ".jpg" for name in os.listdir(load_dir)
+        )
         info: List[str] = ["" for _ in range(num_images)]
 
         for i in range(num_images):
@@ -45,7 +60,12 @@ def main():
             # landmarks detection using MTCNN from facenet-pytorch
             _, _, _landmarks = mtcnn.detect(image, landmarks=True)
             assert _landmarks[0].size == 10
-            info[i] = image_name + " " + " ".join([str(marker) for marker in _landmarks[0].reshape(-1)]) + "\n"
+            info[i] = (
+                image_name
+                + " "
+                + " ".join([str(marker) for marker in _landmarks[0].reshape(-1)])
+                + "\n"
+            )
 
         with open(file=landmark_path, mode="x") as f:
             f.write(str(num_images) + "\n")
@@ -63,7 +83,11 @@ def main():
     with open(file=landmark_path, mode="r") as f:
         landmarks = f.read().split("\n")
 
-    save_dir = Path("./data") / args.dataset.lower() / f"img_landmarks_align_{args.dataset.lower()}"
+    save_dir = (
+        Path("./data")
+        / args.dataset.lower()
+        / f"img_landmarks_align_{args.dataset.lower()}"
+    )
     if not os.path.isdir(save_dir):
         os.mkdir(save_dir)
 
@@ -96,14 +120,20 @@ def main():
 
     train_data = {}
     train_data["num_samples"] = train_samples
-    train_data["user_data"] = {"x": img_list[:train_samples], "y": [args.cid for _ in range(train_samples)]}
+    train_data["user_data"] = {
+        "x": img_list[:train_samples],
+        "y": [args.cid for _ in range(train_samples)],
+    }
     file_path = save_dir / "train_data.json"
     with open(file_path, "w") as outfile:
         json.dump(train_data, outfile)
 
     test_data = {}
     test_data["num_samples"] = test_samples
-    test_data["user_data"] = {"x": img_list[train_samples:], "y": [args.cid for _ in range(test_samples)]}
+    test_data["user_data"] = {
+        "x": img_list[train_samples:],
+        "y": [args.cid for _ in range(test_samples)],
+    }
     file_path = save_dir / "test_data.json"
     with open(file_path, "w") as outfile:
         json.dump(test_data, outfile)

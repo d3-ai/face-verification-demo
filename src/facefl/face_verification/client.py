@@ -4,14 +4,21 @@ import warnings
 
 import numpy as np
 import torch
-from client_app.face_client import FlowerFaceClient
 from flwr.client import start_client
-from utils.utils_dataset import configure_dataset
+
+from facefl.client.face_client import FlowerFaceClient
+from facefl.dataset import configure_dataset
 
 warnings.filterwarnings("ignore")
 
 parser = argparse.ArgumentParser("Flower Client")
-parser.add_argument("--server_address", type=str, required=True, default="0.0.0.0:8080", help="server ipaddress:post")
+parser.add_argument(
+    "--server_address",
+    type=str,
+    required=True,
+    default="0.0.0.0:8080",
+    help="server ipaddress:post",
+)
 parser.add_argument(
     "--strategy",
     type=str,
@@ -20,7 +27,9 @@ parser.add_argument(
     default="FedAvg",
     help="FL config: number of clients",
 )
-parser.add_argument("--cid", type=str, required=True, help="Client id for data partitioning.")
+parser.add_argument(
+    "--cid", type=str, required=True, help="Client id for data partitioning."
+)
 parser.add_argument(
     "--dataset",
     type=str,
@@ -43,7 +52,9 @@ parser.add_argument(
     default="tinyCNN",
     help="model name for FL training",
 )
-parser.add_argument("--seed", type=int, required=False, default=1234, help="Random seed")
+parser.add_argument(
+    "--seed", type=int, required=False, default=1234, help="Random seed"
+)
 
 
 def set_seed(seed: int):

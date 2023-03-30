@@ -19,12 +19,13 @@ from flwr.common import (
     parameters_to_ndarrays,
 )
 from flwr.common.logger import log
-from models.base_model import Net
-from models.driver import test, train
-from models.metric_learning import ArcFaceLoss, CosineContrastiveLoss
 from torch.utils.data import DataLoader
-from utils.utils_dataset import load_federated_dataset
-from utils.utils_model import load_arcface_model
+
+from facefl.dataset import load_federated_dataset
+from facefl.model import load_arcface_model
+from facefl.model.base_model import Net
+from facefl.model.driver import test, train
+from facefl.model.metric_learning import ArcFaceLoss, CosineContrastiveLoss
 
 
 class FlowerFaceClient(Client):
@@ -35,8 +36,12 @@ class FlowerFaceClient(Client):
         self.dataset = config["dataset_name"]
         self.target = config["target_name"]
 
-        self.trainset = load_federated_dataset(dataset_name=self.dataset, id=self.cid, train=True, target=self.target)
-        self.testset = load_federated_dataset(dataset_name=self.dataset, id=self.cid, train=False, target=self.target)
+        self.trainset = load_federated_dataset(
+            dataset_name=self.dataset, id=self.cid, train=True, target=self.target
+        )
+        self.testset = load_federated_dataset(
+            dataset_name=self.dataset, id=self.cid, train=False, target=self.target
+        )
 
         # model configuration
         self.model = config["model_name"]
@@ -82,7 +87,9 @@ class FlowerFaceClient(Client):
         elif criterion_name == "ArcFace":
             assert "scale" in ins.config
             assert "margin" in ins.config
-            criterion = ArcFaceLoss(s=float(ins.config["scale"]), m=float(ins.config["margin"]))
+            criterion = ArcFaceLoss(
+                s=float(ins.config["scale"]), m=float(ins.config["margin"])
+            )
         elif criterion_name == "CCL":
             criterion = CosineContrastiveLoss()
 
@@ -162,7 +169,9 @@ class FlowerFaceRayClient(Client):
         self.net.set_weights(weights)
 
         # dataset configuration train / validation
-        trainset = load_federated_dataset(dataset_name=self.dataset, id=self.cid, train=True, target=self.target)
+        trainset = load_federated_dataset(
+            dataset_name=self.dataset, id=self.cid, train=True, target=self.target
+        )
         trainloader = DataLoader(
             trainset,
             batch_size=batch_size,
@@ -177,7 +186,9 @@ class FlowerFaceRayClient(Client):
         elif criterion_name == "ArcFace":
             assert ins.config["scale"] is not None
             assert ins.config["margin"] is not None
-            criterion = ArcFaceLoss(s=float(ins.config["scale"]), m=float(ins.config["margin"]))
+            criterion = ArcFaceLoss(
+                s=float(ins.config["scale"]), m=float(ins.config["margin"])
+            )
         elif criterion_name == "CCL":
             criterion = CosineContrastiveLoss()
 
@@ -206,7 +217,9 @@ class FlowerFaceRayClient(Client):
 
         self.net.set_weights(weights)
 
-        testset = load_federated_dataset(dataset_name=self.dataset, id=self.cid, train=False, target=self.target)
+        testset = load_federated_dataset(
+            dataset_name=self.dataset, id=self.cid, train=False, target=self.target
+        )
         # testset = load_dataset(name=self.dataset, id=self.cid, train=False, target=self.target)
         testloader = DataLoader(testset, batch_size=batch_size)
         results = test(

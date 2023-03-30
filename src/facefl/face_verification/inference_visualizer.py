@@ -4,11 +4,11 @@ from time import sleep
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from models.base_model import Net
 from torch.utils.data import DataLoader
-from utils.utils_dataset import load_centralized_dataset, load_federated_dataset
-from utils.utils_model import load_arcface_model
 from utils.utils_plot import fig_setup
+
+from facefl.dataset import load_centralized_dataset, load_federated_dataset
+from facefl.model import Net, load_arcface_model
 
 
 def imshow(img):
@@ -22,12 +22,18 @@ if __name__ == "__main__":
     cid = 9
     threshold = 0.5
     device = "cpu"
-    net: Net = load_arcface_model(name="GNResNet18", input_spec=(3, 112, 112), out_dims=1, pretrained="CelebA")
+    net: Net = load_arcface_model(
+        name="GNResNet18", input_spec=(3, 112, 112), out_dims=1, pretrained="CelebA"
+    )
 
     # selfset = load_federated_dataset(dataset_name="CelebA", id = str(cid), train=False, target="small")
-    selfset = load_federated_dataset(dataset_name="usbcam", id=str(cid), train=False, target="small")
+    selfset = load_federated_dataset(
+        dataset_name="usbcam", id=str(cid), train=False, target="small"
+    )
     selfloader = DataLoader(selfset, batch_size=1, shuffle=False)
-    testset = load_centralized_dataset(dataset_name="CelebA", train=False, target="small")
+    testset = load_centralized_dataset(
+        dataset_name="CelebA", train=False, target="small"
+    )
     testloader = DataLoader(testset, batch_size=6, shuffle=False)
 
     # figure conf

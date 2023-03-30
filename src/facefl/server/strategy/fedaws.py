@@ -20,7 +20,8 @@ from flwr.common.logger import log
 from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
 from flwr.server.strategy import FedAvg
-from models.metric_learning import SpreadoutRegularizer
+
+from facefl.model.metric_learning import SpreadoutRegularizer
 
 
 class FedAwS(FedAvg):
@@ -99,8 +100,12 @@ class FedAwS(FedAvg):
             config = self.on_fit_config_fn(server_round)
 
         # Sample clients
-        sample_size, min_num_clients = self.num_fit_clients(client_manager.num_available())
-        clients = client_manager.sample(num_clients=sample_size, min_num_clients=min_num_clients)
+        sample_size, min_num_clients = self.num_fit_clients(
+            client_manager.num_available()
+        )
+        clients = client_manager.sample(
+            num_clients=sample_size, min_num_clients=min_num_clients
+        )
         weights: NDArrays = parameters_to_ndarrays(parameters)
         parameters_dict: Dict[str, Parameters] = {}
         for i, client in enumerate(clients):
@@ -111,7 +116,10 @@ class FedAwS(FedAvg):
             weights[-1] = self.embeddings[np.newaxis, idx, :]
             parameters_dict[client.cid] = ndarrays_to_parameters(weights)
 
-        return [(client, FitIns(parameters=parameters_dict[client.cid], config=config)) for client in clients]
+        return [
+            (client, FitIns(parameters=parameters_dict[client.cid], config=config))
+            for client in clients
+        ]
 
     def aggregate_fit(
         self,
@@ -135,7 +143,11 @@ class FedAwS(FedAvg):
                 self.client_dict[client.cid] = fit_res.metrics["cid"]
         # Convert results
         weights_results = [
-            (parameters_to_ndarrays(fit_res.parameters), fit_res.num_examples, int(fit_res.metrics["cid"]))
+            (
+                parameters_to_ndarrays(fit_res.parameters),
+                fit_res.num_examples,
+                int(fit_res.metrics["cid"]),
+            )
             for client, fit_res in results
         ]
 
@@ -149,7 +161,9 @@ class FedAwS(FedAvg):
 
         metrics_aggregated = {}
         if self.fit_metrics_aggregation_fn:
-            fit_metrics = {client.cid: res.metrics for client, res in results}  # modified here
+            fit_metrics = {
+                client.cid: res.metrics for client, res in results
+            }  # modified here
             metrics_aggregated = self.fit_metrics_aggregation_fn(fit_metrics)
         elif server_round == 1:
             log(WARNING, "No fit_metrics_aggregation_fn provided")
@@ -158,7 +172,11 @@ class FedAwS(FedAvg):
 
 
 def aggregate_and_spreadout(
-    results: List[Tuple[NDArrays, int]], num_clients: int, num_features: int, nu: float, lr: float
+    results: List[Tuple[NDArrays, int]],
+    num_clients: int,
+    num_features: int,
+    nu: float,
+    lr: float,
 ) -> Tuple[NDArrays, NDArray]:
     """Compute weighted average."""
     # Create a classification matrix from class embeddings
@@ -180,11 +198,15 @@ def aggregate_and_spreadout(
     num_examples_total = sum([num_examples for _, num_examples, _ in results])
 
     # Create a list of weights, each multiplied by the related number of examples
-    feature_weights = [[layer * num_examples for layer in weights[:-1]] for weights, num_examples, _ in results]
+    feature_weights = [
+        [layer * num_examples for layer in weights[:-1]]
+        for weights, num_examples, _ in results
+    ]
 
     # Compute average weights of each layer
     weights_prime: NDArrays = [
-        reduce(np.add, layer_updates) / num_examples_total for layer_updates in zip(*feature_weights)
+        reduce(np.add, layer_updates) / num_examples_total
+        for layer_updates in zip(*feature_weights)
     ]
     weights_prime.append(embeddings)
 

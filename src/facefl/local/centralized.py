@@ -6,13 +6,14 @@ import sys
 import numpy as np
 import torch
 import torch.nn as nn
-import wandb
-from models.base_model import Net
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from utils.utils_dataset import configure_dataset, load_centralized_dataset
-from utils.utils_model import load_model
 from utils.utils_wandb import custom_wandb_init
+
+from facefl.dataset import configure_dataset, load_centralized_dataset
+
+# import wandb
+from facefl.model import Net, load_model
 
 parser = argparse.ArgumentParser("Simulation: Centralized learning.")
 parser.add_argument(
@@ -31,12 +32,24 @@ parser.add_argument(
     default="tinyCNN",
     help="model name for Centralized training",
 )
-parser.add_argument("--max_epochs", type=int, required=False, default=100, help="Max epochs")
-parser.add_argument("--batch_size", type=int, required=False, default=10, help="batchsize for training")
-parser.add_argument("--lr", type=float, required=False, default=0.01, help="learning rate")
-parser.add_argument("--momentum", type=float, required=False, default=0.0, help="momentum")
-parser.add_argument("--weight_decay", type=float, required=False, default=0.0, help="weigh_decay")
-parser.add_argument("--seed", type=int, required=False, default=1234, help="Random seed")
+parser.add_argument(
+    "--max_epochs", type=int, required=False, default=100, help="Max epochs"
+)
+parser.add_argument(
+    "--batch_size", type=int, required=False, default=10, help="batchsize for training"
+)
+parser.add_argument(
+    "--lr", type=float, required=False, default=0.01, help="learning rate"
+)
+parser.add_argument(
+    "--momentum", type=float, required=False, default=0.0, help="momentum"
+)
+parser.add_argument(
+    "--weight_decay", type=float, required=False, default=0.0, help="weigh_decay"
+)
+parser.add_argument(
+    "--seed", type=int, required=False, default=1234, help="Random seed"
+)
 
 
 def set_seed(seed: int):
@@ -52,7 +65,9 @@ def main():
 
     dataset_config = configure_dataset(dataset_name=args.dataset)
     net: Net = load_model(
-        name=args.model, input_spec=dataset_config["input_spec"], out_dims=dataset_config["out_dims"]
+        name=args.model,
+        input_spec=dataset_config["input_spec"],
+        out_dims=dataset_config["out_dims"],
     )
 
     params_config = {
@@ -65,16 +80,25 @@ def main():
         "seed": args.seed,
         "api_key_file": os.environ["WANDB_API_KEY_FILE"],
     }
-    custom_wandb_init(config=params_config, project="CIFAR10_baselines", strategy="Centralized")
+    custom_wandb_init(
+        config=params_config, project="CIFAR10_baselines", strategy="Centralized"
+    )
 
     # dataset
     trainset = load_centralized_dataset(name=args.dataset, train=True)
     testset = load_centralized_dataset(name=args.dataset, train=False)
 
     trainloader = DataLoader(
-        trainset, batch_size=params_config["batch_size"], num_workers=4, pin_memory=True, shuffle=True, drop_last=True
+        trainset,
+        batch_size=params_config["batch_size"],
+        num_workers=4,
+        pin_memory=True,
+        shuffle=True,
+        drop_last=True,
     )
-    testloader = DataLoader(testset, batch_size=1000, shuffle=False, num_workers=4, pin_memory=True)
+    testloader = DataLoader(
+        testset, batch_size=1000, shuffle=False, num_workers=4, pin_memory=True
+    )
 
     # train loop
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -95,7 +119,9 @@ def main():
             desc=f"Epoch: {epoch} / {params_config['max_epochs']}",
             leave=False,
         ):
-            images, labels = data[0].to(device, non_blocking=True), data[1].to(device, non_blocking=True)
+            images, labels = data[0].to(device, non_blocking=True), data[1].to(
+                device, non_blocking=True
+            )
             optimizer.zero_grad()
             outputs = net(images)
             loss = criterion(outputs, labels)
@@ -105,14 +131,16 @@ def main():
         correct, total, steps, loss = 0, 0, 0, 0.0
         with torch.no_grad():
             for images, labels in testloader:
-                images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True)
+                images, labels = images.to(device, non_blocking=True), labels.to(
+                    device, non_blocking=True
+                )
                 outputs = net(images)
                 loss += criterion(outputs, labels).item()
                 _, predicted = torch.max(outputs.data, 1)
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
                 steps += 1
-        wandb.log({"test_loss": loss / steps, "test_acc": correct / total})
+        # wandb.log({"test_loss": loss / steps, "test_acc": correct / total})
 
 
 if __name__ == "__main__":

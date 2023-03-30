@@ -23,8 +23,15 @@ parser.add_argument(
     choices=["tinyCNN", "ResNet18", "GNResNet18"],
     help="Centralized ray tuning config: model name",
 )
-parser.add_argument("--num_samples", type=int, required=True, help="Centralized ray tuning config: num of trial")
-parser.add_argument("--seed", type=int, required=False, default=1234, help="Random seed")
+parser.add_argument(
+    "--num_samples",
+    type=int,
+    required=True,
+    help="Centralized ray tuning config: num of trial",
+)
+parser.add_argument(
+    "--seed", type=int, required=False, default=1234, help="Random seed"
+)
 
 
 def set_seed(seed: int):
@@ -53,7 +60,9 @@ def main():
 
     json_path = Path("./conf") / args.dataset / group / "best_config.json"
     with open(json_path, "w") as outfile:
-        best_config = {key: val for key, val in best_trial.config.items() if key != "wandb"}
+        best_config = {
+            key: val for key, val in best_trial.config.items() if key != "wandb"
+        }
         json.dump(best_config, outfile)
 
 
