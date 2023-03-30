@@ -13,7 +13,6 @@ def load_model(
     name: str,
     input_spec: Tuple[int, int, int],
     out_dims: int = 10,
-    pretrained: bool = False,
 ) -> Net:
     if name == "tinyCNN":
         return CNN(input_spec=input_spec, out_dims=out_dims)
