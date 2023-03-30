@@ -36,8 +36,8 @@ class tinyCNN(Net):
         self.pool = nn.MaxPool2d(self.pool_kernel_size, self.pool_kernel_stride)
         self.conv2 = nn.Conv2d(6, 16, self.conv_kernel_size)
         for _ in range(2):
-            self._conv_update()
-            self._pool_update()
+            self.__conv_update()
+            self.__pool_update()
         self.fc1 = nn.Linear(16 * self.width * self.height, 120)
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, out_dims)
@@ -51,7 +51,8 @@ class tinyCNN(Net):
         x = self.fc3(x)
         return x
 
-    def _conv_update(self) -> None:
+    def __conv_update(self) -> None:
+        """Caliculate input tensor height and width after convolution."""
         self.width = ceil(
             (self.width - (self.conv_kernel_size - 1) - 1) / self.conv_kernel_stride + 1
         )
@@ -60,7 +61,8 @@ class tinyCNN(Net):
             + 1
         )
 
-    def _pool_update(self) -> None:
+    def __pool_update(self) -> None:
+        """Caliculate input tensor height and width after pooling."""
         self.width = ceil(
             (self.width - (self.pool_kernel_size - 1) - 1) / self.pool_kernel_stride + 1
         )
