@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from .base_net import Net
 
 
-class tinyCNN(Net):
+class CNN(Net):
     def __init__(
         self,
         input_spec: List,
@@ -18,7 +18,7 @@ class tinyCNN(Net):
         pool_kernel_size: int = 2,
         pool_kernel_stride: int = 2,
     ) -> None:
-        super(tinyCNN, self).__init__()
+        super(CNN, self).__init__()
         self.in_channels, self.width, self.height = (
             input_spec[0],
             input_spec[1],
