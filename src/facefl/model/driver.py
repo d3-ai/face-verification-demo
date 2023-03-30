@@ -7,7 +7,7 @@ from flwr.common.typing import Scalar
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from .base_model import Net
+from .base_net import Net
 
 
 def train(

@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .base_model import Net
+from .base_net import Net
 
 
 class tinyCNN(Net):

@@ -16,8 +16,7 @@ from torch.utils.data import DataLoader
 
 from facefl.client.base_client import FlowerRayClient
 from facefl.dataset import configure_dataset, load_centralized_dataset
-from facefl.model import load_model
-from facefl.model.base_model import Net
+from facefl.model import Net, load_model
 from facefl.model.driver import test
 from facefl.server.wandb_server import WandbServer
 from facefl.simulation.app import start_simulation

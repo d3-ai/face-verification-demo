@@ -2,10 +2,11 @@ from typing import Tuple
 
 import torch.nn as nn
 
-from facefl.model.base_model import Net
 from facefl.model.metric_learning import get_arcface_resnet18
 from facefl.model.resnet import resnet18
 from facefl.model.tinycnn import tinyCNN
+
+from .base_net import Net
 
 
 def load_model(

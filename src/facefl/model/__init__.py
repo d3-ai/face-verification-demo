@@ -1,4 +1,4 @@
-from .base_model import Net
+from .base_net import Net
 from .driver import test, train
 from .model import load_arcface_model, load_model
 from .resnet import ResNet, ResNetLR

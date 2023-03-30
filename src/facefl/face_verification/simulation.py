@@ -17,12 +17,11 @@ from torch.utils.data import DataLoader
 
 from facefl.client.face_client import FlowerFaceRayClient
 from facefl.dataset import configure_dataset, load_centralized_dataset
-from facefl.model import load_arcface_model
-from facefl.model.base_model import Net
+from facefl.model import Net, load_arcface_model
 from facefl.model.driver import test, verify
+from facefl.server.strategy.common import load_strategy
 from facefl.server.wandb_server import WandbServer
 from facefl.simulation.app import start_simulation
-from facefl.server.strategy.common import load_strategy
 from facefl.utils.utils_wandb import custom_wandb_init
 
 warnings.filterwarnings("ignore")
