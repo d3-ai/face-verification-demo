@@ -19,7 +19,7 @@ from facefl.model import load_arcface_model
 from facefl.model.base_model import Net
 from facefl.model.driver import test
 from facefl.server.custom_server import CustomServer
-from facefl.utils.utils_server import load_strategy
+from facefl.server.strategy.common import load_strategy
 
 warnings.filterwarnings("ignore")
 
