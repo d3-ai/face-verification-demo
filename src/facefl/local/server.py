@@ -11,9 +11,9 @@ from flwr.server.app import ServerConfig, start_server
 from flwr.server.strategy import FedAvg
 from torch.utils.data import DataLoader
 
+from facefl.dataset import configure_dataset, load_centralized_dataset
 from facefl.model.base_model import Net
 from facefl.model.driver import test
-from facefl.utils.utils_dataset import configure_dataset, load_centralized_dataset
 from facefl.utils.utils_model import load_model
 
 warnings.filterwarnings("ignore")

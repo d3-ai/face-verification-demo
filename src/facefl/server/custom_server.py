@@ -13,7 +13,7 @@ from flwr.server.client_proxy import ClientProxy
 from flwr.server.history import History
 from flwr.server.strategy import Strategy
 
-from facefl.model.base_model import Net
+from facefl.model import Net
 
 from .custom_history import CustomHistory
 

@@ -65,14 +65,22 @@ class ArcFaceResNet(Net):
             )
         self.groups = groups
         self.base_width = width_per_group
-        self.conv1 = nn.Conv2d(3, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False)
+        self.conv1 = nn.Conv2d(
+            3, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False
+        )
         self.bn1 = norm_layer(self.inplanes)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         self.layer1 = self._make_layer(block, 64, layers[0])
-        self.layer2 = self._make_layer(block, 128, layers[1], stride=2, dilate=replace_stride_with_dilation[0])
-        self.layer3 = self._make_layer(block, 256, layers[2], stride=2, dilate=replace_stride_with_dilation[1])
-        self.layer4 = self._make_layer(block, 512, layers[3], stride=2, dilate=replace_stride_with_dilation[2])
+        self.layer2 = self._make_layer(
+            block, 128, layers[1], stride=2, dilate=replace_stride_with_dilation[0]
+        )
+        self.layer3 = self._make_layer(
+            block, 256, layers[2], stride=2, dilate=replace_stride_with_dilation[1]
+        )
+        self.layer4 = self._make_layer(
+            block, 512, layers[3], stride=2, dilate=replace_stride_with_dilation[2]
+        )
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.arcmarginprod = ArcMarginProduct(512, num_classes)
 
@@ -196,13 +204,21 @@ class ArcFaceResNetLR(Net):
             )
         self.groups = groups
         self.base_width = width_per_group
-        self.conv1 = nn.Conv2d(3, self.inplanes, kernel_size=3, stride=2, padding=3, bias=False)
+        self.conv1 = nn.Conv2d(
+            3, self.inplanes, kernel_size=3, stride=2, padding=3, bias=False
+        )
         self.bn1 = norm_layer(self.inplanes)
         self.relu = nn.ReLU(inplace=True)
         self.layer1 = self._make_layer(block, 64, layers[0])
-        self.layer2 = self._make_layer(block, 128, layers[1], stride=2, dilate=replace_stride_with_dilation[0])
-        self.layer3 = self._make_layer(block, 256, layers[2], stride=2, dilate=replace_stride_with_dilation[1])
-        self.layer4 = self._make_layer(block, 512, layers[3], stride=2, dilate=replace_stride_with_dilation[2])
+        self.layer2 = self._make_layer(
+            block, 128, layers[1], stride=2, dilate=replace_stride_with_dilation[0]
+        )
+        self.layer3 = self._make_layer(
+            block, 256, layers[2], stride=2, dilate=replace_stride_with_dilation[1]
+        )
+        self.layer4 = self._make_layer(
+            block, 512, layers[3], stride=2, dilate=replace_stride_with_dilation[2]
+        )
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(512 * block.expansion, 2)
         self.arcmarginprod = ArcMarginProduct(2, num_classes)
@@ -321,7 +337,9 @@ def get_arcface_resnet18(
             else:
                 pretrained_weight = torch.load("./models/ResNet18.pth")
             # pretrained_weight['arcmarginprod.weight'] = ArcMarginProduct(512,num_classes)
-            pretrained_weight["arcmarginprod.weight"] = torch.FloatTensor(num_classes, 512)
+            pretrained_weight["arcmarginprod.weight"] = torch.FloatTensor(
+                num_classes, 512
+            )
             nn.init.xavier_normal_(pretrained_weight["arcmarginprod.weight"])
             model.load_state_dict(pretrained_weight, strict=False)
     else:
@@ -391,7 +409,9 @@ class ArcMarginProduct(nn.Module):
 
 
 class ArcFaceLoss(nn.modules.Module):
-    def __init__(self, s: float = 45.0, m: float = 0.1, weight=None, reduction="mean") -> None:
+    def __init__(
+        self, s: float = 45.0, m: float = 0.1, weight=None, reduction="mean"
+    ) -> None:
         super().__init__()
 
         self.weight = weight
@@ -453,7 +473,9 @@ class SpreadoutRegularizer(nn.modules.Module):
         for i in range(out_dims - 1):
             for j in range(i + 1, out_dims):
                 loss += torch.pow(
-                    torch.max(torch.tensor(0.0), self.nu - 1 + torch.dot(w[i, :], w[j, :])),
+                    torch.max(
+                        torch.tensor(0.0), self.nu - 1 + torch.dot(w[i, :], w[j, :])
+                    ),
                     2,
                 )
         return loss

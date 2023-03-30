@@ -7,7 +7,7 @@ import torch
 from flwr.client import start_client
 
 from facefl.client.face_client import FlowerFaceClient
-from facefl.utils.utils_dataset import configure_dataset
+from facefl.dataset import configure_dataset
 
 warnings.filterwarnings("ignore")
 

@@ -13,7 +13,7 @@ from flwr.server.client_manager import ClientManager
 from flwr.server.history import History
 from flwr.server.strategy import Strategy
 
-from facefl.model.base_model import Net
+from facefl.model import Net
 
 
 class WandbServer(Server):

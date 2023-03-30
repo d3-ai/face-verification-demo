@@ -4,8 +4,9 @@ import warnings
 
 import numpy as np
 import torch
-from dataset_app.common import create_iid, load_cifar10
-from utils.utils_dataset import write_json
+
+from facefl.dataset.common import create_iid, load_cifar10
+from facefl.dataset.dataset import write_json
 
 warnings.filterwarnings("ignore")
 

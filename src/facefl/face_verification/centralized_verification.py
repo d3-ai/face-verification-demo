@@ -7,15 +7,17 @@ import sys
 import numpy as np
 import torch
 import torch.nn as nn
-import wandb
-from models.base_model import Net
-from models.metric_learning import ArcFaceLoss
 from torch.optim.lr_scheduler import _LRScheduler
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from utils.utils_dataset import configure_dataset, load_centralized_dataset
 from utils.utils_model import load_arcface_model
 from utils.utils_wandb import custom_wandb_init
+
+from facefl.dataset import configure_dataset, load_centralized_dataset
+
+# import wandb
+from facefl.model.base_model import Net
+from facefl.model.metric_learning import ArcFaceLoss
 
 parser = argparse.ArgumentParser("Simulation: Centralized learning.")
 parser.add_argument(
@@ -332,11 +334,11 @@ def main():
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
                 steps += 1
-        wandb.log({"test_loss": loss / steps, "test_acc": correct / total})
+    #     wandb.log({"test_loss": loss / steps, "test_acc": correct / total})
 
-    if args.save_model:
-        save_path = os.path.join(wandb.run.dir, "final_model.pth")
-        torch.save(net.to("cpu").state_dict(), save_path)
+    # if args.save_model:
+    #     save_path = os.path.join(wandb.run.dir, "final_model.pth")
+    #     torch.save(net.to("cpu").state_dict(), save_path)
 
 
 if __name__ == "__main__":

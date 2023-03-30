@@ -4,11 +4,12 @@ from time import sleep
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from models.base_model import Net
 from torch.utils.data import DataLoader
-from utils.utils_dataset import load_centralized_dataset, load_federated_dataset
 from utils.utils_model import load_arcface_model
 from utils.utils_plot import fig_setup
+
+from facefl.dataset import load_centralized_dataset, load_federated_dataset
+from facefl.model import Net
 
 
 def imshow(img):

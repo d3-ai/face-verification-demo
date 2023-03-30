@@ -15,11 +15,11 @@ from flwr.server.strategy import FedAvg
 from torch.utils.data import DataLoader
 
 from facefl.client.base_client import FlowerRayClient
+from facefl.dataset import configure_dataset, load_centralized_dataset
 from facefl.model.base_model import Net
 from facefl.model.driver import test
 from facefl.server.wandb_server import WandbServer
 from facefl.simulation.app import start_simulation
-from facefl.utils.utils_dataset import configure_dataset, load_centralized_dataset
 from facefl.utils.utils_model import load_model
 from facefl.utils.utils_wandb import custom_wandb_init
 
