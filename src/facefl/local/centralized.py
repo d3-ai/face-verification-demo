@@ -8,13 +8,12 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from utils.utils_model import load_model
 from utils.utils_wandb import custom_wandb_init
 
 from facefl.dataset import configure_dataset, load_centralized_dataset
 
 # import wandb
-from facefl.model import Net
+from facefl.model import Net, load_model
 
 parser = argparse.ArgumentParser("Simulation: Centralized learning.")
 parser.add_argument(

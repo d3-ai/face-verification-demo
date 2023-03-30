@@ -15,10 +15,10 @@ from flwr.server.client_manager import SimpleClientManager
 from torch.utils.data import DataLoader
 
 from facefl.dataset import configure_dataset, load_centralized_dataset
+from facefl.model import load_arcface_model
 from facefl.model.base_model import Net
 from facefl.model.driver import test
 from facefl.server.custom_server import CustomServer
-from facefl.utils.utils_model import load_arcface_model
 from facefl.utils.utils_server import load_strategy
 
 warnings.filterwarnings("ignore")

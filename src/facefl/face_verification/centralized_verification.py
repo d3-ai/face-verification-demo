@@ -10,10 +10,10 @@ import torch.nn as nn
 from torch.optim.lr_scheduler import _LRScheduler
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from utils.utils_model import load_arcface_model
 from utils.utils_wandb import custom_wandb_init
 
 from facefl.dataset import configure_dataset, load_centralized_dataset
+from facefl.model import load_arcface_model
 
 # import wandb
 from facefl.model.base_model import Net

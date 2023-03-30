@@ -22,10 +22,10 @@ from flwr.common.logger import log
 from torch.utils.data import DataLoader
 
 from facefl.dataset import load_federated_dataset
+from facefl.model import load_arcface_model
 from facefl.model.base_model import Net
 from facefl.model.driver import test, train
 from facefl.model.metric_learning import ArcFaceLoss, CosineContrastiveLoss
-from facefl.utils.utils_model import load_arcface_model
 
 
 class FlowerFaceClient(Client):
