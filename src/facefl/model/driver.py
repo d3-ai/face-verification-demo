@@ -33,7 +33,7 @@ def train(
         criterion (torch.nn.modules.Module, optional): loss function . Defaults to nn.CrossEntropyLoss().
         device (str, optional): designated device type. Defaults to "cpu".
         use_tqdm (bool, optional): tqdm. Defaults to False.
-    """    
+    """
     net.to(device)
 
     optimizer = torch.optim.SGD(
@@ -70,9 +70,7 @@ def train(
                 optimizer.step()
 
 
-def test(
-    net: Net, testloader: DataLoader, device: str = "cpu"
-) -> Dict[str, Scalar]:
+def test(net: Net, testloader: DataLoader, device: str = "cpu") -> Dict[str, Scalar]:
     """test model
 
     Args:

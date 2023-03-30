@@ -9,14 +9,14 @@ from torch.utils.data import Dataset, random_split
 from torchvision.datasets import CIFAR10
 from torchvision.transforms import transforms
 
+from .centralized_dataset import (
+    CentralizedCelebaAndUsbcamVerification,
+    CentralizedCelebaVerification,
+)
 from .federated_dataset import (
     CIFAR10_truncated,
     FederatedCelebaVerification,
     FederatedUsbcamVerification,
-)
-from .centralized_dataset import (
-    CentralizedCelebaAndUsbcamVerification,
-    CentralizedCelebaVerification,
 )
 
 DATA_ROOT = Path(os.environ["DATA_ROOT"])
