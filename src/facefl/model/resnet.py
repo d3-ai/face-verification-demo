@@ -313,6 +313,7 @@ def resnet18(
             **kwargs,
         )
     else:
+        # For low-resolution input images
         model = ResNetLR(
             BasicBlock,
             [2, 2, 2, 2],
