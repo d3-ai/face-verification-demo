@@ -31,10 +31,15 @@ except ImportError:
     pass
 from typing import Any, Callable, List, Optional, Type, Union
 
-from facefl.model.base_model import Net
+from .base_net import Net
 
 
 class ArcFaceResNet(Net):
+    """
+    ResNet architecture for ArcFace loss.
+    FC layer is replaced by ArcMarginProduct
+    """
+
     def __init__(
         self,
         block: Type[Union[BasicBlock, Bottleneck]],
@@ -82,7 +87,9 @@ class ArcFaceResNet(Net):
             block, 512, layers[3], stride=2, dilate=replace_stride_with_dilation[2]
         )
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.arcmarginprod = ArcMarginProduct(512, num_classes)
+        self.arcmarginprod = ArcMarginProduct(
+            512, num_classes
+        )  # modified from basic resnet architecture
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -165,7 +172,7 @@ class ArcFaceResNet(Net):
 
         x = torch.flatten(x, 1)
         self.features = x
-        x = self.arcmarginprod(x)
+        x = self.arcmarginprod(x)  # modified from basic resnet architecture
 
         return x
 

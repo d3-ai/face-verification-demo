@@ -23,8 +23,7 @@ from flwr.common.logger import log
 from torch.utils.data import DataLoader
 
 from facefl.dataset import configure_dataset, load_federated_dataset, split_validation
-from facefl.model import load_model
-from facefl.model.base_model import Net
+from facefl.model import Net, load_model
 from facefl.model.driver import test, train
 
 warnings.filterwarnings("ignore")

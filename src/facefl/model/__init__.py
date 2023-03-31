@@ -1,14 +1,16 @@
-from .base_model import Net
+from .base_net import Net
+from .cnn import CNN
 from .driver import test, train
 from .model import load_arcface_model, load_model
 from .resnet import ResNet, ResNetLR
-from .tinycnn import tinyCNN
 
 __all__ = [
     "Net",
-    "test",
-    "train",
+    "CNN",
     "ResNet",
     "ResNetLR",
-    "tinyCNN",
+    "load_arcface_model",
+    "load_model",
+    "test",
+    "train",
 ]

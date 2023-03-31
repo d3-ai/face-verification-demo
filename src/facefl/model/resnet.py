@@ -18,7 +18,7 @@ except ImportError:
     )
     log(WARNING, "If you have some problems, upgrade torchvision>=0.13.0")
     pass
-from facefl.model.base_model import Net
+from .base_net import Net
 
 """
 ResNet: ResNet from torchvision models
@@ -313,6 +313,7 @@ def resnet18(
             **kwargs,
         )
     else:
+        # For low-resolution input images
         model = ResNetLR(
             BasicBlock,
             [2, 2, 2, 2],

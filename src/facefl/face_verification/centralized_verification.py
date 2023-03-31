@@ -13,10 +13,9 @@ from tqdm import tqdm
 from utils.utils_wandb import custom_wandb_init
 
 from facefl.dataset import configure_dataset, load_centralized_dataset
-from facefl.model import load_arcface_model
 
 # import wandb
-from facefl.model.base_model import Net
+from facefl.model import Net, load_arcface_model
 from facefl.model.metric_learning import ArcFaceLoss
 
 parser = argparse.ArgumentParser("Simulation: Centralized learning.")

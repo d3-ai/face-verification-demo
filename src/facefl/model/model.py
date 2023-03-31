@@ -2,20 +2,20 @@ from typing import Tuple
 
 import torch.nn as nn
 
-from facefl.model.base_model import Net
 from facefl.model.metric_learning import get_arcface_resnet18
 from facefl.model.resnet import resnet18
-from facefl.model.tinycnn import tinyCNN
+
+from .base_net import Net
+from .cnn import CNN
 
 
 def load_model(
     name: str,
     input_spec: Tuple[int, int, int],
     out_dims: int = 10,
-    pretrained: bool = False,
 ) -> Net:
     if name == "tinyCNN":
-        return tinyCNN(input_spec=input_spec, out_dims=out_dims)
+        return CNN(input_spec=input_spec, out_dims=out_dims)
     elif name == "ResNet18":
         return resnet18(input_spec=input_spec, num_classes=out_dims)
     elif name == "GNResNet18":

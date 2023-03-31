@@ -7,7 +7,7 @@ from flwr.common.typing import Scalar
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from .base_model import Net
+from .base_net import Net
 
 
 def train(
@@ -21,6 +21,19 @@ def train(
     device: str = "cpu",
     use_tqdm: bool = False,
 ) -> None:
+    """train model
+
+    Args:
+        net (Net): PyTorch neural network model
+        trainloader (DataLoader): train data loader
+        epochs (int): number of epochs
+        lr (float): learning rate (step size)
+        momentum (float, optional): coefficient of momentum of SGD Defaults to 0.0.
+        weight_decay (float, optional): coefficient of regularization. Defaults to 0.0.
+        criterion (torch.nn.modules.Module, optional): loss function . Defaults to nn.CrossEntropyLoss().
+        device (str, optional): designated device type. Defaults to "cpu".
+        use_tqdm (bool, optional): tqdm. Defaults to False.
+    """
     net.to(device)
 
     optimizer = torch.optim.SGD(
@@ -55,12 +68,21 @@ def train(
                 loss = criterion(outputs, labels)
                 loss.backward()
                 optimizer.step()
-    # net.to("cpu")
 
 
-def test(
-    net: Net, testloader: DataLoader, steps: int = None, device: str = "cpu"
-) -> Dict[str, Scalar]:
+def test(net: Net, testloader: DataLoader, device: str = "cpu") -> Dict[str, Scalar]:
+    """test model
+
+    Args:
+        net (Net): PyTorch neural network model
+        testloader (DataLoader): test data loader
+        device (str, optional): designated device type. Defaults to "cpu".
+
+    Returns:
+        Dict[str, Scalar]: performance metrics of the model
+            key: metrics name
+            value: metrics value
+    """
     net.to(device)
     criterion = torch.nn.CrossEntropyLoss()
     correct, total, steps, loss = 0, 0, 0, 0.0
