@@ -9,9 +9,11 @@ from torch.utils.data import Dataset, random_split
 from torchvision.datasets import CIFAR10
 from torchvision.transforms import transforms
 
-from facefl.dataset import (
+from .centralized_dataset import (
     CentralizedCelebaAndUsbcamVerification,
     CentralizedCelebaVerification,
+)
+from .federated_dataset import (
     CIFAR10_truncated,
     FederatedCelebaVerification,
     FederatedUsbcamVerification,
