@@ -5,7 +5,7 @@ services:
     container_name: "test"
     build:
       context: ../../
-      dockerfile: ./baseimages/jetson/Dockerfile
+      dockerfile: ./baseimages/jetson_demo/Dockerfile
       args:
         - USER=$USER
     shm_size: "32gb"
@@ -13,24 +13,20 @@ services:
       - "8080:8080"
     runtime: nvidia
     volumes:
+      - /proc/device-tree/compatible:/proc/device-tree/compatible
+      - /proc/device-tree/chosen:/proc/device-tree/chosen
+      - /sys/devices/:/sys/devices/
+      - /sys/class/gpio:/sys/class/gpio
       - ../../conf:/home/$USER/project/conf:ro
+      - ../../tmp:/home/$USER/project/tmp
       - ../../data:/home/$USER/project/data:ro
       - ../../data/CIFAR10:/home/$USER/project/data/CIFAR10:ro
       - ../../data/celeba:/home/$USER/project/data/celeba:ro
       - ../../exp:/home/$USER/project/exp
-      - ../../face_verification:/home/$USER/project/face_verification:ro
-      - ../../local:/home/$USER/project/local:ro
       - ../../models:/home/$USER/project/models:ro
       - ../../shell:/home/$USER/project/shell
       - ../../src:/home/$USER/project/src:ro
-      - ../../src/client_app:/home/$USER/project/src/client_app:ro
-      - ../../src/common:/home/$USER/project/src/common:ro
-      - ../../src/dataset_app:/home/$USER/project/src/dataset_app:ro
-      - ../../src/utils:/home/$USER/project/src/utils:ro
-      - ../../src/models:/home/$USER/project/src/models:ro
-      - ../../src/server_app:/home/$USER/project/src/server_app:ro
-      - ../../src/simulation_app:/home/$USER/project/src/simulation_app:ro
-      - ../../src/tune_app:/home/$USER/project/src/tune_app:ro
     environment:
       - DATA_ROOT=/home/$USER/project/data
       - NVIDIA_VISIBLE_DEVICES_FILE=all
+    privileged: true
