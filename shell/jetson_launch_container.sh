@@ -1,4 +1,5 @@
---name visualizer \
+docker run -it --rm\
+  --name visualizer \
   --runtime nvidia \
   --mount type=bind,source="/tmp/.X11-unix",target="/tmp/.X11-unix",readonly\
   --mount type=bind,source="$(pwd)"/shell/,target=/home/"${USER}"/project/shell/,readonly \
