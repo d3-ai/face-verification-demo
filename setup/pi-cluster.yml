@@ -1,0 +1,59 @@
+---
+- hosts: pi-cluster
+  tasks:
+  - name: Install docker installation dependencies
+    ansible.builtin.apt:
+      name:
+      - ca-certificates
+      - gnupg
+    become: true
+  - name: Download key
+    ansible.builtin.uri:
+      url: https://download.docker.com/linux/ubuntu/gpg
+      return_content: true
+    register: docker_key
+  - name: Add key
+    command:
+      argv:
+      - gpg
+      - --dearmor
+      - --yes
+      - -o
+      - /usr/share/keyrings/docker.gpg
+      stdin: "{{ docker_key.content }}"
+    become: true
+  - name: Add repository
+    ansible.builtin.apt_repository:
+      repo: deb [arch=arm64 signied-by=/usr/share/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu focal stable
+      filename: docker
+    become: true
+  - name: Install docker
+    ansible.builtin.apt:
+      name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    become: true
+  - name: Install other dependencies
+    ansible.builtin.apt:
+      name:
+      - net-tools
+      - nfs-kernel-server
+      - git
+    become: true
+  - name: Pull docker image
+    command:
+      argv:
+      - docker
+      - image
+      - pull
+      - ghcr.io/d3-ai/flower-face-verification_image4pi:latest
+    become: true
+  - name: Clone repository
+    ansible.builtin.git:
+      repo: https://github.com/d3-ai/face-verification-demo.git
+      dest: "{{ ansible_facts['user_dir'] }}/face-verification-demo"
+      version: feat-facefl_pi_jetson_demo
+      force: true
